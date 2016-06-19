@@ -14,6 +14,19 @@ void * error(char * mensaje){
   exit(-1);
 }
 
+/*Registra un mensaje en la bitacora indicada*/
+void * registrar(char *bitacora, char* mensaje){
+  FILE *archivo;
+
+  if ((archivo = fopen(bitacora,"a")) == NULL) {
+    error("No se pudo abrir el archivo de bitacora");
+  }
+
+  fputs(mensaje,archivo);
+  fclose(archivo);
+
+}
+
 /* Funcion que verifica y devuelve los argumentos de entrada*/
 void * leer_args(int argc, char *argv[], int *numero_puerto,
                        char *bitacora_entrada, char *bitacora_salida){
@@ -34,9 +47,9 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
           char *endpt;
           *numero_puerto = strtol(argv[i+1],&endpt,10);
         } else if ((strcmp(argv[i], bitEnt)) == 0) {
-          printf("Esta es la ruta del archivo de entrada: %s\n",argv[i+1]);
+          strcpy(bitacora_entrada,argv[i+1]);
         } else if ((strcmp(argv[i], bitSal)) == 0) {
-          printf("Esta es la ruta del archivo de salida: %s\n",argv[i+1]);
+          strcpy(bitacora_salida, argv[i+1]);
         }
     }
 }
@@ -47,10 +60,14 @@ int main(int argc, char *argv[]) {
 
     /*Almacentaran los argumentos recibidos de la linea de comandos*/
     int numero_puerto;
-    char bitacora_entrada, bitacora_salida;
+    char *bitacora_entrada = (char *) malloc(512*sizeof(char));
+    char *bitacora_salida  = (char *) malloc(512*sizeof(char));
 
     /*Leemos los argumentos y los asignamos a las variables respectivas.*/
-    leer_args(argc,argv,&numero_puerto,&bitacora_entrada,&bitacora_salida);
+    leer_args(argc,argv,&numero_puerto, bitacora_entrada, bitacora_salida);
+    printf("Este es el archivo de entrada (afuera): %s\n", bitacora_entrada);
+    printf("Este es el archivo de salida (afuera): %s\n", bitacora_salida);
+    printf("Este es el numero de puerto (afuera): %d\n", numero_puerto );
 
     /*guardaran las los datos del cliente y servidor*/
     struct sockaddr_in datos_servidor, datos_cliente;
@@ -97,6 +114,7 @@ int main(int argc, char *argv[]) {
       printf("Longitud del PDU en bytes %d\n",numero_bytes);
       pdu_entrante[numero_bytes] = '\0';
       printf("El mensaje es: %s\n",pdu_entrante);
+      registrar(bitacora_entrada,pdu_entrante);
       fflush(stdout);
 
     }
