@@ -17,5 +17,12 @@
 #include <sys/socket.h>
 
 /* Constantes */
-#define PUERTO_SERVIDOR 4321
+#define MAX_PUESTOS 200
 #define MAX_PDU_LENGTH 50
+
+/*Imprime en pantalla un mensaje de error y finaliza la ejecucion*/
+void * error(char * mensaje);
+
+/*Funcion que verifica y retorna los argumentos de la linea de comandos*/
+void *leer_args(int argc, char *argv[], int *numero_puerto,
+                       char *bitacora_entrada, char *bitacora_salida);
