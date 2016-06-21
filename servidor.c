@@ -15,14 +15,17 @@ void * error(char * mensaje){
 }
 
 /*Registra un mensaje en la bitacora indicada*/
-void * registrar(char *bitacora, char* mensaje){
+void * registrar(char *bitacora, PDU *pdu){
   FILE *archivo;
 
   if ((archivo = fopen(bitacora,"a")) == NULL) {
     error("No se pudo abrir el archivo de bitacora");
   }
 
-  fputs(mensaje,archivo);
+  
+  //op = pdu-> operacion;
+  fputc(pdu-> serialID,archivo);
+ // fputs(op,archivo);
   fclose(archivo);
 
 }
@@ -79,7 +82,9 @@ int main(int argc, char *argv[]) {
     int socketfd, tam_direccion, numero_bytes;
 
     /* Contendra el PDU entrante */
-    char pdu_entrante[MAX_PDU_LENGTH];
+    //char pdu_entrante[MAX_PDU_LENGTH];
+    PDU *pdu_entrante;
+    pdu_entrante = (PDU *)malloc(sizeof(PDU));
 
     /*creamos el socket*/
     printf("Creando el socket.\n");
@@ -110,10 +115,11 @@ int main(int argc, char *argv[]) {
       }
 
       /* Imprimimos en pantalla el mensaje recibido.*/
-      printf("Mensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
+      printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
       printf("Longitud del PDU en bytes %d\n",numero_bytes);
-      pdu_entrante[numero_bytes] = '\0';
-      printf("El mensaje es: %s\n",pdu_entrante);
+      //printf("El mensaje es: %s\n",pdu_entrante);
+      printf("\nnumero vehiculo %d\n", pdu_entrante-> serialID);
+      printf("operacion %c\n", pdu_entrante-> operacion);
       registrar(bitacora_entrada,pdu_entrante);
       fflush(stdout);
 

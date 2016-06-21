@@ -91,14 +91,21 @@ int main(int argc, char *argv[]) {
     datos_servidor.sin_addr = *((struct in_addr *)host->h_addr); 
     bzero(&(datos_servidor.sin_zero), 8); 
 
+    PDU *pdu;
+    pdu = (PDU *)malloc(sizeof(PDU));
+    pdu-> serialID = id;
+    pdu-> operacion = *op;
+
     /* Se envían los datos al servidor */ 
-    if ((numero_bytes=sendto(sockfd,argv[8],sizeof(int)*4,0,(struct sockaddr *)&datos_servidor,
+    if ((numero_bytes=sendto(sockfd,pdu,50,0,(struct sockaddr *)&datos_servidor,
     sizeof(struct sockaddr))) == -1) { 
         perror("sendto"); 
         exit(2); 
     } 
     printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr)); 
-    printf("numero vehiculo %d\n", id);
+    printf("\nnumero vehiculo %d\n", pdu-> serialID);
+    printf("operacion %c\n", pdu-> operacion);
+    
     /* cierro socket */ 
     close(sockfd); 
     exit (0); 

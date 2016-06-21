@@ -27,3 +27,9 @@ void * leer_args(int argc, char *argv[], char *dominio,
                        int *id);
 
 
+typedef struct pdu_IO{
+
+	int *serialID;
+	char *operacion;	
+
+} PDU;

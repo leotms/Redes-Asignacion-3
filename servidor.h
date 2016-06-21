@@ -20,12 +20,22 @@
 #define MAX_PUESTOS 200
 #define MAX_PDU_LENGTH 50
 
+typedef struct pdu_IO{
+
+	int *serialID;
+	char *operacion;	
+
+} PDU;
+
+
 /*Imprime en pantalla un mensaje de error y finaliza la ejecucion*/
 void * error(char * mensaje);
 
 /*Registra un mensaje en la bitacora indicada*/
-void * registrar(char *bitacora, char* mensaje);
+void * registrar(char *bitacora, PDU *pdu);
 
 /*Funcion que verifica y retorna los argumentos de la linea de comandos*/
 void *leer_args(int argc, char *argv[], int *numero_puerto,
                        char *bitacora_entrada, char *bitacora_salida);
+
+
