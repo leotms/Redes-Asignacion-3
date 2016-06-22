@@ -2,7 +2,7 @@
 * Sahid Reyes 		10-10603
 * Leonardo Martinez 11-10576
 *
-* Ultima Modificacion 19/06/16
+* Ultima Modificacion 21/06/16
 */
 
 /* Archivo de cabecera*/
@@ -53,11 +53,11 @@ int main(int argc, char *argv[]) {
     /*Almacentaran los argumentos recibidos de la linea de comandos*/
     char *dominio = (char *) malloc(512*sizeof(char));
     int numero_puerto;
-    char *op= (char *) malloc(sizeof(char));
+    char op;
     int id;
 
     /*Leemos los argumentos y los asignamos a las variables respectivas.*/
-    leer_args(argc,argv,dominio,&numero_puerto,op,&id);
+    leer_args(argc,argv,dominio,&numero_puerto,&op,&id);
     
 
     /* sockfd: descriptor del socket.
@@ -91,20 +91,25 @@ int main(int argc, char *argv[]) {
     datos_servidor.sin_addr = *((struct in_addr *)host->h_addr); 
     bzero(&(datos_servidor.sin_zero), 8); 
 
-    PDU *pdu;
-    pdu = (PDU *)malloc(sizeof(PDU));
-    pdu-> serialID = id;
-    pdu-> operacion = *op;
+    PDU *pdu_salida;
+    pdu_salida = (PDU *)malloc(sizeof(PDU));
+    pdu_salida-> placa = id;
+    pdu_salida-> tipo_paq = op;
 
     /* Se envían los datos al servidor */ 
-    if ((numero_bytes=sendto(sockfd,pdu,50,0,(struct sockaddr *)&datos_servidor,
+    if ((numero_bytes=sendto(sockfd,pdu_salida,MAX_PDU_LENGTH,0,(struct sockaddr *)&datos_servidor,
     sizeof(struct sockaddr))) == -1) { 
         perror("sendto"); 
         exit(2); 
     } 
     printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr)); 
-    printf("\nnumero vehiculo %d\n", pdu-> serialID);
-    printf("operacion %c\n", pdu-> operacion);
+	printf("\nTipo de paquete: %c\n", pdu_salida-> tipo_paq);
+	//printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
+	//printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
+	printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
+	//printf("Hora de Entrada/Salida: %s\n", pdu_salida-> fecha);
+	//printf("Ticket n°: %d\n", pdu_salida-> codigo);
+	//printf("Monto a Cancelar: %d\n", pdu_salida-> monto);
     
     /* cierro socket */ 
     close(sockfd); 

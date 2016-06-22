@@ -9,13 +9,13 @@ all: sem_svr sem_cli
 sem_svr: servidor.o
 	gcc servidor.o -o sem_svr
 	
-servidor.o: servidor.c servidor.h
+servidor.o: servidor.c pdu.h servidor.h
 	gcc -c -g servidor.c
 
 sem_cli: cliente.o
 	gcc cliente.o -o sem_cli
 
-cliente.o: cliente.c cliente.h
+cliente.o: cliente.c pdu.h cliente.h
 	gcc -c -g cliente.c
 	
 clean: 
