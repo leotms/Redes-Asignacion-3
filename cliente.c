@@ -2,7 +2,7 @@
 * Sahid Reyes 		10-10603
 * Leonardo Martinez 11-10576
 *
-* Ultima Modificacion 21/06/16
+* Ultima Modificacion 22/06/16
 */
 
 /* Archivo de cabecera*/
@@ -91,10 +91,30 @@ int main(int argc, char *argv[]) {
     datos_servidor.sin_addr = *((struct in_addr *)host->h_addr); 
     bzero(&(datos_servidor.sin_zero), 8); 
 
+    /* PDU de salida */
     PDU *pdu_salida;
     pdu_salida = (PDU *)malloc(sizeof(PDU));
-    pdu_salida-> placa = id;
+
+    /* Hora y Fecha del sistema */
+    char fecha[18];
+    time_t t = time(NULL);
+    struct tm *tmp; 
+    tmp = localtime(&t);
+    strftime(fecha,sizeof(fecha),"%D %T",tmp);    
+
+    int cod_ticket, m_cancelar;
+    cod_ticket = 100;
+    m_cancelar = 80;
+
+    /* Datos a enviar/Recibir */
     pdu_salida-> tipo_paq = op;
+    pdu_salida-> fuente = false;
+    pdu_salida-> puesto = false;
+    pdu_salida-> placa = id;
+    pdu_salida-> fecha_hora = fecha;
+    pdu_salida-> codigo = cod_ticket; 
+    pdu_salida-> monto = m_cancelar; 
+
 
     /* Se envían los datos al servidor */ 
     if ((numero_bytes=sendto(sockfd,pdu_salida,MAX_PDU_LENGTH,0,(struct sockaddr *)&datos_servidor,
@@ -104,12 +124,12 @@ int main(int argc, char *argv[]) {
     } 
     printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr)); 
 	printf("\nTipo de paquete: %c\n", pdu_salida-> tipo_paq);
-	//printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
-	//printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
-	printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
-	//printf("Hora de Entrada/Salida: %s\n", pdu_salida-> fecha);
-	//printf("Ticket n°: %d\n", pdu_salida-> codigo);
-	//printf("Monto a Cancelar: %d\n", pdu_salida-> monto);
+	printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
+    printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
+    printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
+	printf("Hora de Entrada/Salida: %s\n", pdu_salida-> fecha_hora);
+	printf("Ticket n°: %d\n", pdu_salida-> codigo);
+	printf("Monto a Cancelar: %d\n", pdu_salida-> monto);
     
     /* cierro socket */ 
     close(sockfd); 

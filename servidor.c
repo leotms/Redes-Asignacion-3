@@ -1,8 +1,8 @@
 /* Aplicacion Servidor para el Sistema de Estacionamiento Moriah (SEM).
-* Sahid Reyes 10-10603
+* Sahid Reyes 		10-10603
 * Leonardo Martinez 11-10576
 *
-* Ultima Modificacion 18/06/16
+* Ultima Modificacion 22/06/16
 */
 
 /* Archivo de cabecera*/
@@ -29,7 +29,7 @@ void * registrar(char *bitacora, PDU *pdu){
 
 /* Funcion que verifica y devuelve los argumentos de entrada*/
 void * leer_args(int argc, char *argv[], int *numero_puerto,
-               char *bitacora_entrada, char *bitacora_salida){
+               char *bitacora_entrada, char *bitacora_entrante){
 	if (argc < 7) {
 		error("Error en el numero de argumentos.");
 	}
@@ -49,7 +49,7 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 		} else if ((strcmp(argv[i], bitEnt)) == 0) {
 			strcpy(bitacora_entrada,argv[i+1]);
 		} else if ((strcmp(argv[i], bitSal)) == 0) {
-			strcpy(bitacora_salida, argv[i+1]);
+			strcpy(bitacora_entrante, argv[i+1]);
 		}
 	}
 }
@@ -61,12 +61,12 @@ void main(int argc, char *argv[]) {
 	/*Almacentaran los argumentos recibidos de la linea de comandos*/
 	int numero_puerto;
 	char *bitacora_entrada = (char *) malloc(512*sizeof(char));
-	char *bitacora_salida  = (char *) malloc(512*sizeof(char));
+	char *bitacora_entrante  = (char *) malloc(512*sizeof(char));
 
 	/*Leemos los argumentos y los asignamos a las variables respectivas.*/
-	leer_args(argc,argv,&numero_puerto, bitacora_entrada, bitacora_salida);
+	leer_args(argc,argv,&numero_puerto, bitacora_entrada, bitacora_entrante);
 	printf("Este es el archivo de entrada (afuera): %s\n", bitacora_entrada);
-	printf("Este es el archivo de salida (afuera): %s\n", bitacora_salida);
+	printf("Este es el archivo de salida (afuera): %s\n", bitacora_entrante);
 	printf("Este es el numero de puerto (afuera): %d\n", numero_puerto );
 
 	/*guardaran las los datos del cliente y servidor*/
@@ -114,14 +114,15 @@ void main(int argc, char *argv[]) {
 	/* Imprimimos en pantalla el mensaje recibido.*/
 	printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 	printf("Longitud del PDU en bytes %d\n",numero_bytes);
-	//printf("El mensaje es: %s\n",pdu_entrante);
+	
+
 	printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-	//printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
-	//printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
-	printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-	//printf("Hora de Entrada/Salida: %s\n", pdu_entrante-> fecha);
-	//printf("Ticket n°: %d\n", pdu_entrante-> codigo);
-	//printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
+	printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+    printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
+    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+    //printf("Hora de Entrada/Salida: %s\n",pdu_entrante-> fecha_hora);
+	printf("Ticket n°: %d\n", pdu_entrante-> codigo);
+	printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
 
 	//registrar(bitacora_entrada,pdu_entrante);
 	fflush(stdout);
