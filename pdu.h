@@ -26,7 +26,7 @@ typedef struct pdu_IO{
 	bool *fuente;
 	bool *puesto;
 	int *placa;
-	char *fecha_hora;
+	char fecha_hora[18];
 	int *codigo;
 	int *monto;	
 

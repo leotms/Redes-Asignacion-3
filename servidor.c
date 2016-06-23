@@ -120,7 +120,7 @@ void main(int argc, char *argv[]) {
 	printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
     printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
     printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-    //printf("Hora de Entrada/Salida: %s\n",pdu_entrante-> fecha_hora);
+    printf("Hora de Entrada/Salida: %s\n",pdu_entrante-> fecha_hora);
 	printf("Ticket n°: %d\n", pdu_entrante-> codigo);
 	printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
 

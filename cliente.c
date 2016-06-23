@@ -111,7 +111,8 @@ int main(int argc, char *argv[]) {
     pdu_salida-> fuente = false;
     pdu_salida-> puesto = false;
     pdu_salida-> placa = id;
-    pdu_salida-> fecha_hora = fecha;
+    //pdu_salida-> fecha_hora = fecha;
+    strcpy(pdu_salida->fecha_hora,fecha);
     pdu_salida-> codigo = cod_ticket; 
     pdu_salida-> monto = m_cancelar; 
 
