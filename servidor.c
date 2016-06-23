@@ -182,16 +182,21 @@ void main(int argc, char *argv[]) {
 	*/
 	int socketfd, tam_direccion, numero_bytes;
 
-	/* Contendra el PDU entrante */
-	//char pdu_entrante[MAX_PDU_LENGTH];
+	/* Contendra el PDU entrante/saliente */
+
 	PDU *pdu_entrante;
 	pdu_entrante = (PDU *)malloc(sizeof(PDU));
+
+	PDU *pdu_salida;
+	pdu_salida = (PDU *)malloc(sizeof(PDU));
 
 	/*creamos el socket*/
 	printf("Creando el socket.\n");
 	if ((socketfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		error("No se pudo crear el socket.");
 	}
+
+	memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
 
 	/* Asignamos los datos del servidor*/
 	datos_servidor.sin_family = AF_INET;
@@ -206,33 +211,59 @@ void main(int argc, char *argv[]) {
 		error("Error uniendo el socket con los datos del servidor.");
 	}
 
-	printf("Esperando datos del cliente: \n");
+	
 	while(1){
 
-	if ((numero_bytes = recvfrom(socketfd, pdu_entrante, MAX_PDU_LENGTH, 0,
-								(struct sockaddr*) &datos_cliente,
-								(socklen_t *) &tam_direccion)) == -1){
-		error("Error recibiendo datos del cliente.");
-	}
+		printf("\nEsperando datos del cliente...\n");
+		fflush(stdout);
 
-	/* Imprimimos en pantalla el mensaje recibido.*/
-	printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
-	printf("Longitud del PDU en bytes %d\n",numero_bytes);
+		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, MAX_PDU_LENGTH, 0,
+									(struct sockaddr*) &datos_cliente,
+									(socklen_t *) &tam_direccion)) == -1){
+			error("Error recibiendo datos del cliente.");
+		}
 
 
-	printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-	printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
-    printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
-    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-    printf("Hora de Entrada/Salida: %s\n",pdu_entrante-> fecha_hora);
-	printf("Ticket n°: %d\n", pdu_entrante-> codigo);
-	printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
+		/* Imprimimos en pantalla el mensaje recibido.*/
+		printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
+		printf("Longitud del PDU en bytes %d\n",numero_bytes);
+		printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
+		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);   
+	    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
-	//procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
 
-	//registrar(bitacora_entrada,pdu_entrante);
-	fflush(stdout);
 
+	    /* Hora y Fecha del sistema */
+	    char fecha[18];
+	    time_t t = time(NULL);
+	    struct tm *tmp; 
+	    tmp = localtime(&t);
+	    strftime(fecha,sizeof(fecha),"%D %T",tmp); 
+
+	    int *c, *m;
+
+	    c = (int *)malloc(sizeof(int));
+	    c = 100;
+	    m = (int *)malloc(sizeof(int));
+	    m = 80;
+
+	    /* Datos a enviar/Recibir */
+
+	    pdu_salida-> fuente = true;
+	    pdu_salida-> puesto = true;
+	    pdu_salida-> placa = pdu_entrante->placa;
+	    strcpy(pdu_salida->fecha_hora,fecha);
+	    pdu_salida-> codigo = c;
+	    //pdu_salida-> monto = m;
+
+	    //procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
+
+		//registrar(bitacora_entrada,pdu_entrante);
+		if (numero_bytes = sendto(socketfd, pdu_salida,MAX_PDU_LENGTH, 0,
+								(struct sockaddr*) &datos_cliente, 
+								sizeof(struct sockaddr)) == -1){
+				error("Error enviando datos al cliente.");
+		}
 	}
 
 	close(socketfd);

@@ -1,5 +1,5 @@
 /* Aplicacion Cliente para el Sistema de Estacionamiento Moriah (SEM).
-* Sahid Reyes 		10-10603
+* Sahid Reyes       10-10603
 * Leonardo Martinez 11-10576
 *
 * Ultima Modificacion 22/06/16
@@ -33,15 +33,15 @@ void * leer_args(int argc, char *argv[], char *dominio,
 
         /*Identificamos cada argumento de entrada y lo asignamos donde corresponda*/
         if ((strcmp(argv[i], dom_IP)) == 0){
-        	strcpy(dominio, argv[i+1]);
+            strcpy(dominio, argv[i+1]);
         } else if ((strcmp(argv[i], portID)) == 0) {
-        	char *endpt;
-        	*numero_puerto = strtol(argv[i+1],&endpt,10);
+            char *endpt;
+            *numero_puerto = strtol(argv[i+1],&endpt,10);
         } else if ((strcmp(argv[i], operIO)) == 0) {
-        	strcpy(op, argv[i+1]);
+            strcpy(op, argv[i+1]);
         } else if ((strcmp(argv[i], vehiID)) == 0) {
-        	char *endid;
-        	*id = strtol(argv[i+1],&endid,10);
+            char *endid;
+            *id = strtol(argv[i+1],&endid,10);
         }
     }
 }
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     * numero_bytes: numero de bytes recibidos.
     */
 
-    int sockfd, numero_bytes;
+    int sockfd, numero_bytes, tam_direccion;
 
     /* Guarda la direccion IP y numero de puerto del servidor */ 
     struct sockaddr_in datos_servidor; 
@@ -85,52 +85,58 @@ int main(int argc, char *argv[]) {
         exit(2); 
     } 
 
+    memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
+
     /* Asignamos los datos del servidor */ 
     datos_servidor.sin_family = AF_INET; 
     datos_servidor.sin_port = htons(numero_puerto); 
     datos_servidor.sin_addr = *((struct in_addr *)host->h_addr); 
     bzero(&(datos_servidor.sin_zero), 8); 
 
+    /* PDU de entrada */
+    PDU *pdu_entrante;
+    pdu_entrante = (PDU *)malloc(sizeof(PDU));
+
     /* PDU de salida */
     PDU *pdu_salida;
     pdu_salida = (PDU *)malloc(sizeof(PDU));
 
-    /* Hora y Fecha del sistema */
-    char fecha[18];
-    time_t t = time(NULL);
-    struct tm *tmp; 
-    tmp = localtime(&t);
-    strftime(fecha,sizeof(fecha),"%D %T",tmp);    
 
-    int cod_ticket, m_cancelar;
-    cod_ticket = 100;
-    m_cancelar = 80;
-
-    /* Datos a enviar/Recibir */
+    /* Datos a enviar */
     pdu_salida-> tipo_paq = op;
     pdu_salida-> fuente = false;
-    pdu_salida-> puesto = false;
     pdu_salida-> placa = id;
-    //pdu_salida-> fecha_hora = fecha;
-    strcpy(pdu_salida->fecha_hora,fecha);
-    pdu_salida-> codigo = cod_ticket; 
-    pdu_salida-> monto = m_cancelar; 
 
 
     /* Se envían los datos al servidor */ 
-    if ((numero_bytes=sendto(sockfd,pdu_salida,MAX_PDU_LENGTH,0,(struct sockaddr *)&datos_servidor,
+    if ((numero_bytes = sendto(sockfd,pdu_salida,MAX_PDU_LENGTH,0,(struct sockaddr *)&datos_servidor,
     sizeof(struct sockaddr))) == -1) { 
         perror("sendto"); 
         exit(2); 
-    } 
+    }
+
+    memset(pdu_entrante,'\0', MAX_PDU_LENGTH);
+
+    if ((numero_bytes = recvfrom(sockfd, pdu_entrante, MAX_PDU_LENGTH, 0,
+                            (struct sockaddr*) &datos_servidor,
+                            (socklen_t *) &tam_direccion)) == -1){
+        error("Error recibiendo datos del cliente.");
+    }
+
     printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr)); 
-	printf("\nTipo de paquete: %c\n", pdu_salida-> tipo_paq);
-	printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
-    printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
-    printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
-	printf("Hora de Entrada/Salida: %s\n", pdu_salida-> fecha_hora);
-	printf("Ticket n°: %d\n", pdu_salida-> codigo);
-	printf("Monto a Cancelar: %d\n", pdu_salida-> monto);
+    printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+    printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
+    if (pdu_entrante-> puesto){
+            printf("HAY PUESTO :D\n");
+    }else{
+        printf("NO HAY PUESTO :(\n");
+    }
+
+    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+    printf("Hora de Entrada/Salida: %s\n", pdu_entrante-> fecha_hora);
+    printf("Ticket n°: %d\n", pdu_entrante-> codigo);
+    //printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
+    
     
     /* cierro socket */ 
     close(sockfd); 
