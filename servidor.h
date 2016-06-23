@@ -31,5 +31,11 @@ void *leer_args(int argc, char *argv[], int *numero_puerto,
 /*Ingresa un vehiculo en el estacionamiento*/
 void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo);
 
-/*Retira un vehiculo, si existe, del estacionamiento*/
+/* Retira un vehiculo del estacionamiento y retorna un puntero al vehiculo en cuestion, NULL si el vehiculo no existe*/
 REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa);
+
+/*Imprime todos los vehiculos en un estacionamiento (SOLO PARA DEBUGGING)*/
+void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]);
+
+/* Si hay puestos, procesa el PDU entrante*/
+void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos);

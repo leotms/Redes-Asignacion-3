@@ -27,6 +27,52 @@ void * registrar(char *bitacora, PDU *pdu){
 
 }
 
+/*Ingresa un vehiculo en el estacionamiento*/
+void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo){
+  int i;
+  for (i = 0; i < MAX_PUESTOS; i++){
+    if (estacionamiento[i] == NULL){
+      estacionamiento[i] = vehiculo;
+      printf("Guadado en i = %d\n",i);
+      break;
+    }
+  }
+}
+
+/*Imprime todos los vehiculos en un estacionamiento (SOLO PARA DEBUGGING)*/
+void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]){
+  int i;
+  REG_VEHICULO * vehiculo;
+  char fecha[18];
+
+  printf("IMPRIMIENDO ESTACIONAMIENTO: \n");
+  for (i = 0; i < MAX_PUESTOS; i++){
+    if (estacionamiento[i] != NULL){
+      vehiculo = estacionamiento[i];
+      strftime(fecha,sizeof(fecha),"%D %T",vehiculo->tiempoEntrada);
+      printf("Vehiculo en puesto %d: \n",i);
+      printf(" --Placa: %d\n", *vehiculo->placa );
+      printf(" --Hora Entrada: %s\n", fecha);
+      //free(vehiculo);
+      }
+  }
+}
+
+/* Retira un vehiculo del estacionamiento y retorna un puntero al vehiculo en cuestion NULL si el vehiculo no existe*/
+REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
+  int i;
+  REG_VEHICULO * vehiculo = NULL;
+  printf("Retirando Vehiculo con placa : %d\n",*placa);
+  for (i = 0; i < MAX_PUESTOS; i++){
+    if (estacionamiento[i] != NULL && estacionamiento[i]->placa == placa){
+      vehiculo = estacionamiento[i];
+      estacionamiento[i] = NULL;
+      break;
+    }
+  }
+  return vehiculo;
+}
+
 /* Funcion que verifica y devuelve los argumentos de entrada*/
 void * leer_args(int argc, char *argv[], int *numero_puerto,
                char *bitacora_entrada, char *bitacora_entrante){
@@ -54,9 +100,67 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 	}
 }
 
+
+/* Si hay puestos, procesa el PDU entrante*/
+void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados){
+	printf("Hello \n");
+	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
+	REG_VEHICULO * vehiculo;
+
+	/*Este sera el tiempo de entrada o salida del vehiculo segun corresponda*/
+	time_t t = time(NULL);
+	struct tm local_tm;
+	struct tm *tmp = localtime_r(&t,&local_tm);
+	// if (pdu_entrante->tipo_paq == "e"){
+	// 	/*Como la operacion es de entrada, reservamos la memoria para el nuevo
+	// 	 * vehiculo y le asignamos los valores correspondientes.*/
+	// 	vehiculo = (REG_VEHICULO *) malloc(sizeof(REG_VEHICULO));
+	// 	vehiculo->placa = &pdu_entrante->placa;
+	// 	vehiculo->tiempoEntrada = fecha_hora;
+	//
+	// 	/*Ingresamos el vehiculo al estacionamiento*/
+	// 	ingresar_vehiculo(estacionamiento,vehiculo);
+	//
+	// 	/*Imprimimos el vehiculo solo para verificar*/
+	// 	imprimir_estacionamiento(estacionamiento);
+	//
+	// 	/*Incrementamos el numero de puestos*/
+	// 	*puestos_ocupados++;
+	//
+	// 	printf("Numero de puestos : %d\n", *puestos_ocupados);
+	//
+	//
+	// } // else if (pdu_entrante->tipo_paq == "e") {
+	// 	/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
+	// 	vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
+	//
+	// 	/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
+	// 	if (vehiculo == NULL) {
+	// 		printf("El vehiculo con placa %d no existe o hubo un error.\n", &pdu_entrante->placa);
+	// 		/* Aqui le enviamos algo al cliente*/
+	// 	} else {
+	// 		printf("El vehiculo retirado es:  %d\n", *vehiculo->placa);
+	// 		/*Imprimimos el vehiculo solo para verificar*/
+	// 		imprimir_estacionamiento(estacionamiento);
+	// 		/*Decrementamos el numero de puestos*/
+	// 		*puestos_ocupados--;
+	// 		printf("Numero de puestos : %d\n", *puestos_ocupados);
+	//
+	// 		/*Liberamos la memoria del vehiculo*/
+	// 		free(vehiculo);
+	// 	}
+	// }
+}
+
+
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
 
+	/* Inicializamos el estacionamiento con punteros a NULL.*/
+	REG_VEHICULO * estacionamiento[MAX_PUESTOS] = {NULL};
+
+	/*Numero de pustos ocupados en el estacionamiento*/
+	int puestos_ocupados = 0;
 
 	/*Almacentaran los argumentos recibidos de la linea de comandos*/
 	int numero_puerto;
@@ -114,7 +218,7 @@ void main(int argc, char *argv[]) {
 	/* Imprimimos en pantalla el mensaje recibido.*/
 	printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 	printf("Longitud del PDU en bytes %d\n",numero_bytes);
-	
+
 
 	printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
 	printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
@@ -123,6 +227,8 @@ void main(int argc, char *argv[]) {
     printf("Hora de Entrada/Salida: %s\n",pdu_entrante-> fecha_hora);
 	printf("Ticket n°: %d\n", pdu_entrante-> codigo);
 	printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
+
+	//procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
 
 	//registrar(bitacora_entrada,pdu_entrante);
 	fflush(stdout);
