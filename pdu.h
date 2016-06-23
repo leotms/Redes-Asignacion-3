@@ -2,7 +2,7 @@
 * Sahid Reyes 		10-10603
 * Leonardo Martinez 11-10576
 *
-* Ultima Modificacion 21/06/16
+* Ultima Modificacion 22/06/16
 */
 
 /* Librerias a utilizar */
@@ -26,7 +26,7 @@ typedef struct pdu_IO{
 	bool *fuente;
 	bool *puesto;
 	int *placa;
-	char fecha_hora[18];
+	char *fecha_hora;
 	int *codigo;
 	int *monto;	
 
