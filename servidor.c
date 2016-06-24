@@ -167,7 +167,6 @@ void main(int argc, char *argv[]) {
 
 	/* Inicializamos el estacionamiento con punteros a NULL.*/
 	REG_VEHICULO * estacionamiento[MAX_PUESTOS] = {NULL};
-	//int MAX_PDU_LENGTH = sizeof(PDU);
 
 	/*Numero de pustos ocupados en el estacionamiento*/
 	int puestos_ocupados = 0;
@@ -230,7 +229,7 @@ void main(int argc, char *argv[]) {
 		printf("\nEsperando datos del cliente...\n");
 		//fflush(stdout);
 
-		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, MAX_PDU_LENGTH, 0,
+		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, sizeof(PDU), 0,
 									(struct sockaddr*) &datos_cliente,
 									(socklen_t *) &tam_direccion)) == -1){
 			error("Error recibiendo datos del cliente.");
@@ -250,8 +249,8 @@ void main(int argc, char *argv[]) {
     time_t t;
 		time(&t);
     struct tm tmp;
-    //localtime_r(&t,&tmp);
-    //strftime(fecha,sizeof(fecha),"%D %T",&tmp);
+    localtime_r(&t,&tmp);
+    strftime(fecha,sizeof(fecha),"%D %T",&tmp);
 		/* -------------------------- ERROR ----------------------------------- */
 		/* EL ERROR ESTA CUANDO SE PIDE EL LOCALTIME. Lo corro en todos lados y nada.*/
 		/* Quizas podamos cambiar el string del PDU por un solo un time_t e imprimirlo del lado del cliente?*/
@@ -268,15 +267,15 @@ void main(int argc, char *argv[]) {
     pdu_salida-> fuente = true;
     pdu_salida-> puesto = true;
     pdu_salida-> placa = pdu_entrante->placa;
-    //strcpy(pdu_salida->fecha_hora,fecha);
-		pdu_salida->fecha_hora = t;
+    strcpy(pdu_salida->fecha_hora,fecha);
+		//pdu_salida->fecha_hora = t;
     pdu_salida-> codigo = c;
     //pdu_salida-> monto = m;
 
     //procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
 
 		//registrar(bitacora_entrada,pdu_entrante);
-		if (numero_bytes = sendto(socketfd, pdu_salida,MAX_PDU_LENGTH, 0,
+		if (numero_bytes = sendto(socketfd, pdu_salida,sizeof(PDU), 0,
 								(struct sockaddr*) &datos_cliente,
 								sizeof(struct sockaddr)) == -1){
 				error("Error enviando datos al cliente.");
