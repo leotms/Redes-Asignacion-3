@@ -49,9 +49,9 @@ void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]){
   for (i = 0; i < MAX_PUESTOS; i++){
     if (estacionamiento[i] != NULL){
       vehiculo = estacionamiento[i];
-      strftime(fecha,sizeof(fecha),"%D %T",vehiculo->tiempoEntrada);
+      strftime(fecha,sizeof(fecha),"%D %T", &vehiculo->tiempoEntrada);
       printf("Vehiculo en puesto %d: \n",i);
-      printf(" --Placa: %d\n", *vehiculo->placa );
+      printf(" --Placa: %d\n", vehiculo->placa );
       printf(" --Hora Entrada: %s\n", fecha);
       //free(vehiculo);
       }
@@ -64,7 +64,7 @@ REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
   REG_VEHICULO * vehiculo = NULL;
   printf("Retirando Vehiculo con placa : %d\n",*placa);
   for (i = 0; i < MAX_PUESTOS; i++){
-    if (estacionamiento[i] != NULL && estacionamiento[i]->placa == placa){
+    if (estacionamiento[i] != NULL && estacionamiento[i]->placa == *placa){
       vehiculo = estacionamiento[i];
       estacionamiento[i] = NULL;
       break;
@@ -109,48 +109,49 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 
 	/*Este sera el tiempo de entrada o salida del vehiculo segun corresponda*/
 	time_t t = time(NULL);
-	struct tm local_tm;
-	struct tm *tmp = localtime_r(&t,&local_tm);
+	//struct tm local_tm;
+	//struct tm *tmp = localtime_r(&t,&local_tm);
 
-	// if (pdu_entrante->tipo_paq == "e"){
-	// 	/*Como la operacion es de entrada, reservamos la memoria para el nuevo
-	// 	 * vehiculo y le asignamos los valores correspondientes.*/
-	// 	vehiculo = (REG_VEHICULO *) malloc(sizeof(REG_VEHICULO));
-	// 	vehiculo->placa = &pdu_entrante->placa;
-	// 	vehiculo->tiempoEntrada = fecha_hora;
-	//
-	// 	/*Ingresamos el vehiculo al estacionamiento*/
-	// 	ingresar_vehiculo(estacionamiento,vehiculo);
-	//
-	// 	/*Imprimimos el vehiculo solo para verificar*/
-	// 	imprimir_estacionamiento(estacionamiento);
-	//
-	// 	/*Incrementamos el numero de puestos*/
-	// 	*puestos_ocupados++;
-	//
-	// 	printf("Numero de puestos : %d\n", *puestos_ocupados);
-	//
-	//
-	// } // else if (pdu_entrante->tipo_paq == "e") {
-	// 	/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
-	// 	vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
-	//
-	// 	/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
-	// 	if (vehiculo == NULL) {
-	// 		printf("El vehiculo con placa %d no existe o hubo un error.\n", &pdu_entrante->placa);
-	// 		/* Aqui le enviamos algo al cliente*/
-	// 	} else {
-	// 		printf("El vehiculo retirado es:  %d\n", *vehiculo->placa);
-	// 		/*Imprimimos el vehiculo solo para verificar*/
-	// 		imprimir_estacionamiento(estacionamiento);
-	// 		/*Decrementamos el numero de puestos*/
-	// 		*puestos_ocupados--;
-	// 		printf("Numero de puestos : %d\n", *puestos_ocupados);
-	//
-	// 		/*Liberamos la memoria del vehiculo*/
-	// 		free(vehiculo);
-	// 	}
-	// }
+	if (pdu_entrante->tipo_paq == 'e'){
+		/*Como la operacion es de entrada, reservamos la memoria para el nuevo
+		 * vehiculo y le asignamos los valores correspondientes.*/
+		vehiculo = (REG_VEHICULO *) malloc(sizeof(REG_VEHICULO));
+		memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
+		localtime_r(&t,&vehiculo->tiempoEntrada);
+		//vehiculo->tiempoEntrada = fecha_hora;
+
+		/*Ingresamos el vehiculo al estacionamiento*/
+		ingresar_vehiculo(estacionamiento,vehiculo);
+
+		/*Imprimimos el vehiculo solo para verificar*/
+		imprimir_estacionamiento(estacionamiento);
+
+		/*Incrementamos el numero de puestos*/
+		*puestos_ocupados++;
+
+		printf("Numero de puestos : %d\n", *puestos_ocupados);
+
+
+	} else if (pdu_entrante->tipo_paq == 's') {
+		/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
+		vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
+
+		/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
+		if (vehiculo == NULL) {
+			printf("El vehiculo con placa %d no existe o hubo un error.\n", pdu_entrante->placa);
+			/* Aqui le enviamos algo al cliente*/
+		} else {
+			printf("El vehiculo retirado es:  %d\n", vehiculo->placa);
+			/*Imprimimos el vehiculo solo para verificar*/
+			imprimir_estacionamiento(estacionamiento);
+			/*Decrementamos el numero de puestos*/
+			*puestos_ocupados--;
+			printf("Numero de puestos : %d\n", *puestos_ocupados);
+
+			/*Liberamos la memoria del vehiculo*/
+			free(vehiculo);
+		}
+	}
 }
 //
 // struct tm * tiempoLocal() {
@@ -268,18 +269,17 @@ void main(int argc, char *argv[]) {
     pdu_salida-> puesto = true;
     pdu_salida-> placa = pdu_entrante->placa;
     strcpy(pdu_salida->fecha_hora,fecha);
-		//pdu_salida->fecha_hora = t;
     pdu_salida-> codigo = c;
-    //pdu_salida-> monto = m;
 
-    //procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
+    //registrar(bitacora_entrada,pdu_entrante);
+		// if (numero_bytes = sendto(socketfd, pdu_salida, sizeof(PDU), 0,
+		// 						(struct sockaddr*) &datos_cliente,
+		// 						sizeof(struct sockaddr)) == -1){
+		// 		error("Error enviando datos al cliente.");
+		// }
 
-		//registrar(bitacora_entrada,pdu_entrante);
-		if (numero_bytes = sendto(socketfd, pdu_salida,sizeof(PDU), 0,
-								(struct sockaddr*) &datos_cliente,
-								sizeof(struct sockaddr)) == -1){
-				error("Error enviando datos al cliente.");
-		}
+		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
+
 	}
 
 	close(socketfd);

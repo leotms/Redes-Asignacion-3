@@ -14,8 +14,8 @@
 
 /*Estructura para el registro de vehiculos*/
 typedef struct reg_vehiculo{
-  int *placa;
-  struct tm *tiempoEntrada;
+  int placa;
+  struct tm tiempoEntrada;
 } REG_VEHICULO;
 
 /*Imprime en pantalla un mensaje de error y finaliza la ejecucion*/
