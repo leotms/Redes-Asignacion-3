@@ -127,7 +127,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		imprimir_estacionamiento(estacionamiento);
 
 		/*Incrementamos el numero de puestos*/
-		*puestos_ocupados++;
+		*puestos_ocupados = *puestos_ocupados + 1;
 
 		printf("Numero de puestos : %d\n", *puestos_ocupados);
 
@@ -145,7 +145,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 			/*Imprimimos el vehiculo solo para verificar*/
 			imprimir_estacionamiento(estacionamiento);
 			/*Decrementamos el numero de puestos*/
-			*puestos_ocupados--;
+			*puestos_ocupados = *puestos_ocupados - 1;
 			printf("Numero de puestos : %d\n", *puestos_ocupados);
 
 			/*Liberamos la memoria del vehiculo*/
