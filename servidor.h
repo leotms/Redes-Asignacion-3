@@ -15,7 +15,7 @@
 /*Estructura para el registro de vehiculos*/
 typedef struct reg_vehiculo{
   int placa;
-  struct tm tiempoEntrada;
+  time_t tiempo_entrada;
 } REG_VEHICULO;
 
 /*Imprime en pantalla un mensaje de error y finaliza la ejecucion*/
@@ -36,6 +36,9 @@ REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa);
 
 /*Imprime todos los vehiculos en un estacionamiento (SOLO PARA DEBUGGING)*/
 void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]);
+
+/* Recibe las horas de entrada y salida y retorna el pago correspondiente del estacionamiento*/
+int calcular_pago(time_t hora_entrada, time_t hora_salida);
 
 /* Si hay puestos, procesa el PDU entrante*/
 void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos);

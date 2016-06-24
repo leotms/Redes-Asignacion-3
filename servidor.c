@@ -33,7 +33,6 @@ void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehicul
   for (i = 0; i < MAX_PUESTOS; i++){
     if (estacionamiento[i] == NULL){
       estacionamiento[i] = vehiculo;
-      printf("Guadado en i = %d\n",i);
       break;
     }
   }
@@ -49,7 +48,9 @@ void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]){
   for (i = 0; i < MAX_PUESTOS; i++){
     if (estacionamiento[i] != NULL){
       vehiculo = estacionamiento[i];
-      strftime(fecha,sizeof(fecha),"%D %T", &vehiculo->tiempoEntrada);
+			struct tm tiempo_local;
+			localtime_r(&vehiculo->tiempo_entrada,&tiempo_local);
+      strftime(fecha,sizeof(fecha),"%D %T", &tiempo_local);
       printf("Vehiculo en puesto %d: \n",i);
       printf(" --Placa: %d\n", vehiculo->placa );
       printf(" --Hora Entrada: %s\n", fecha);
@@ -62,7 +63,6 @@ void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]){
 REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
   int i;
   REG_VEHICULO * vehiculo = NULL;
-  printf("Retirando Vehiculo con placa : %d\n",*placa);
   for (i = 0; i < MAX_PUESTOS; i++){
     if (estacionamiento[i] != NULL && estacionamiento[i]->placa == *placa){
       vehiculo = estacionamiento[i];
@@ -71,6 +71,26 @@ REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
     }
   }
   return vehiculo;
+}
+
+/* Recibe las horas de entrada y salida y retorna el pago correspondiente del estacionamiento*/
+int calcular_pago(time_t hora_entrada, time_t hora_salida){
+	int pago;
+	double tiempo_total = difftime(hora_salida,hora_entrada);
+	if (tiempo_total <= 3600.0){
+		pago = 80;
+	} else {
+		pago = 80;
+		tiempo_total = tiempo_total - 3600.0;
+		while (tiempo_total > 0.0) {
+			pago = pago + 30;
+			tiempo_total = tiempo_total - 3600.0;
+		}
+	}
+
+	printf("Se debe pagar %d Bs.\n",pago);
+	return pago;
+
 }
 
 /* Funcion que verifica y devuelve los argumentos de entrada*/
@@ -103,22 +123,26 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 
 /* Si hay puestos, procesa el PDU entrante*/
 void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados){
-	printf("Hello \n");
+
 	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
 	REG_VEHICULO * vehiculo;
 
 	/*Este sera el tiempo de entrada o salida del vehiculo segun corresponda*/
 	time_t t = time(NULL);
-	//struct tm local_tm;
-	//struct tm *tmp = localtime_r(&t,&local_tm);
 
 	if (pdu_entrante->tipo_paq == 'e'){
+
+		/*Falta comprobar si hay puestos en el estacionamiento*/
+
 		/*Como la operacion es de entrada, reservamos la memoria para el nuevo
 		 * vehiculo y le asignamos los valores correspondientes.*/
 		vehiculo = (REG_VEHICULO *) malloc(sizeof(REG_VEHICULO));
 		memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
-		localtime_r(&t,&vehiculo->tiempoEntrada);
-		//vehiculo->tiempoEntrada = fecha_hora;
+		memcpy(&vehiculo->tiempo_entrada,&t,sizeof(time_t));
+
+		// se le hace strftime a tiempo_entrada para el PDU
+		struct tm tiempo_entrada;
+		localtime_r(&t,&tiempo_entrada);
 
 		/*Ingresamos el vehiculo al estacionamiento*/
 		ingresar_vehiculo(estacionamiento,vehiculo);
@@ -129,39 +153,44 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		/*Incrementamos el numero de puestos*/
 		*puestos_ocupados = *puestos_ocupados + 1;
 
-		printf("Numero de puestos : %d\n", *puestos_ocupados);
+		printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
+
+		/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 
 	} else if (pdu_entrante->tipo_paq == 's') {
 		/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
 		vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
 
+		// Aqui se calcula el tiempo en el que el carro salio del estacionamiento
+
+	  // se le hace strftime a tiempo_salida para el PDU
+		struct tm tiempo_salida;
+		localtime_r(&t,&tiempo_salida);
+
 		/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
 		if (vehiculo == NULL) {
 			printf("El vehiculo con placa %d no existe o hubo un error.\n", pdu_entrante->placa);
-			/* Aqui le enviamos algo al cliente*/
+			/* Aqui le enviamos al cliente el mensaje correspondiente*/
+
 		} else {
 			printf("El vehiculo retirado es:  %d\n", vehiculo->placa);
 			/*Imprimimos el vehiculo solo para verificar*/
 			imprimir_estacionamiento(estacionamiento);
 			/*Decrementamos el numero de puestos*/
 			*puestos_ocupados = *puestos_ocupados - 1;
-			printf("Numero de puestos : %d\n", *puestos_ocupados);
+			printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
+
+			//Se calcula el tipo de pago.
+			int monto_a_pagar = calcular_pago(vehiculo->tiempo_entrada,t);
+
+			/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 			/*Liberamos la memoria del vehiculo*/
 			free(vehiculo);
 		}
 	}
 }
-//
-// struct tm * tiempoLocal() {
-// 	struct tm newtime;
-// 	time_t ltime;
-// 	char buf[50];
-//
-// 	ltime=time(&ltime);
-// 	return &newtime;
-// }
 
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
@@ -185,8 +214,6 @@ void main(int argc, char *argv[]) {
 
 	/*guardaran las los datos del cliente y servidor*/
 	struct sockaddr_in datos_servidor, datos_cliente;
-	//memset(&datos_servidor,0,sizeof(struct sockaddr_in));
-	//memset(&datos_cliente ,0,sizeof(struct sockaddr_in));
 
 	/* socketfd: descriptor del socket.
 	* tam_direccion: tama#o de la estructura sockaddr_in
@@ -223,12 +250,9 @@ void main(int argc, char *argv[]) {
 		error("Error uniendo el socket con los datos del servidor.");
 	}
 
-
-
 	while(1){
 
 		printf("\nEsperando datos del cliente...\n");
-		//fflush(stdout);
 
 		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, sizeof(PDU), 0,
 									(struct sockaddr*) &datos_cliente,
@@ -244,17 +268,15 @@ void main(int argc, char *argv[]) {
 		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
 	  printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
+	  /* EL PDU DE SALIDA DEBERIA CONSTRUIRSE DENTRO DE procesar_pdu*/
+
     /* Hora y Fecha del sistema */
-		/* -------------------------- ERROR ----------------------------------- */
     char fecha[18];
     time_t t;
 		time(&t);
     struct tm tmp;
     localtime_r(&t,&tmp);
     strftime(fecha,sizeof(fecha),"%D %T",&tmp);
-		/* -------------------------- ERROR ----------------------------------- */
-		/* EL ERROR ESTA CUANDO SE PIDE EL LOCALTIME. Lo corro en todos lados y nada.*/
-		/* Quizas podamos cambiar el string del PDU por un solo un time_t e imprimirlo del lado del cliente?*/
 
     int c, m;
 
@@ -272,6 +294,9 @@ void main(int argc, char *argv[]) {
     pdu_salida-> codigo = c;
 
     //registrar(bitacora_entrada,pdu_entrante);
+
+		/* ESTA COMENTADO PORQUE POR ALGUNA RAZON DA ERROR **PROBAR** */
+
 		// if (numero_bytes = sendto(socketfd, pdu_salida, sizeof(PDU), 0,
 		// 						(struct sockaddr*) &datos_cliente,
 		// 						sizeof(struct sockaddr)) == -1){
@@ -279,6 +304,8 @@ void main(int argc, char *argv[]) {
 		// }
 
 		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
+
+		fflush(stdout);
 
 	}
 
