@@ -18,16 +18,16 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define MAX_PDU_LENGTH 100
+#define MAX_PDU_LENGTH 200
 
 typedef struct pdu_IO{
 
-	char *tipo_paq;
-	bool *fuente;
-	bool *puesto;
-	int *placa;
-	char fecha_hora[18];
-	int *codigo;
-	int *monto;	
+	char tipo_paq;
+	bool fuente;
+	bool puesto;
+	int placa;
+	time_t fecha_hora;
+	int codigo;
+	int monto;
 
 } PDU;

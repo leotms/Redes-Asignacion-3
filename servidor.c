@@ -111,6 +111,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 	time_t t = time(NULL);
 	struct tm local_tm;
 	struct tm *tmp = localtime_r(&t,&local_tm);
+
 	// if (pdu_entrante->tipo_paq == "e"){
 	// 	/*Como la operacion es de entrada, reservamos la memoria para el nuevo
 	// 	 * vehiculo y le asignamos los valores correspondientes.*/
@@ -151,13 +152,22 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 	// 	}
 	// }
 }
-
+//
+// struct tm * tiempoLocal() {
+// 	struct tm newtime;
+// 	time_t ltime;
+// 	char buf[50];
+//
+// 	ltime=time(&ltime);
+// 	return &newtime;
+// }
 
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
 
 	/* Inicializamos el estacionamiento con punteros a NULL.*/
 	REG_VEHICULO * estacionamiento[MAX_PUESTOS] = {NULL};
+	//int MAX_PDU_LENGTH = sizeof(PDU);
 
 	/*Numero de pustos ocupados en el estacionamiento*/
 	int puestos_ocupados = 0;
@@ -175,6 +185,8 @@ void main(int argc, char *argv[]) {
 
 	/*guardaran las los datos del cliente y servidor*/
 	struct sockaddr_in datos_servidor, datos_cliente;
+	//memset(&datos_servidor,0,sizeof(struct sockaddr_in));
+	//memset(&datos_cliente ,0,sizeof(struct sockaddr_in));
 
 	/* socketfd: descriptor del socket.
 	* tam_direccion: tama#o de la estructura sockaddr_in
@@ -211,11 +223,12 @@ void main(int argc, char *argv[]) {
 		error("Error uniendo el socket con los datos del servidor.");
 	}
 
-	
+
+
 	while(1){
 
 		printf("\nEsperando datos del cliente...\n");
-		fflush(stdout);
+		//fflush(stdout);
 
 		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, MAX_PDU_LENGTH, 0,
 									(struct sockaddr*) &datos_cliente,
@@ -228,39 +241,43 @@ void main(int argc, char *argv[]) {
 		printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 		printf("Longitud del PDU en bytes %d\n",numero_bytes);
 		printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);   
-	    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+	  printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
+    /* Hora y Fecha del sistema */
+		/* -------------------------- ERROR ----------------------------------- */
+    char fecha[18];
+    time_t t;
+		time(&t);
+    struct tm tmp;
+    //localtime_r(&t,&tmp);
+    //strftime(fecha,sizeof(fecha),"%D %T",&tmp);
+		/* -------------------------- ERROR ----------------------------------- */
+		/* EL ERROR ESTA CUANDO SE PIDE EL LOCALTIME. Lo corro en todos lados y nada.*/
+		/* Quizas podamos cambiar el string del PDU por un solo un time_t e imprimirlo del lado del cliente?*/
 
+    int c, m;
 
-	    /* Hora y Fecha del sistema */
-	    char fecha[18];
-	    time_t t = time(NULL);
-	    struct tm *tmp; 
-	    tmp = localtime(&t);
-	    strftime(fecha,sizeof(fecha),"%D %T",tmp); 
+    //c = (int *)malloc(sizeof(int));
+    c = 100;
+    //m = (int *)malloc(sizeof(int));
+    m = 80;
 
-	    int *c, *m;
+    /* Datos a enviar/Recibir */
 
-	    c = (int *)malloc(sizeof(int));
-	    c = 100;
-	    m = (int *)malloc(sizeof(int));
-	    m = 80;
+    pdu_salida-> fuente = true;
+    pdu_salida-> puesto = true;
+    pdu_salida-> placa = pdu_entrante->placa;
+    //strcpy(pdu_salida->fecha_hora,fecha);
+		pdu_salida->fecha_hora = t;
+    pdu_salida-> codigo = c;
+    //pdu_salida-> monto = m;
 
-	    /* Datos a enviar/Recibir */
-
-	    pdu_salida-> fuente = true;
-	    pdu_salida-> puesto = true;
-	    pdu_salida-> placa = pdu_entrante->placa;
-	    strcpy(pdu_salida->fecha_hora,fecha);
-	    pdu_salida-> codigo = c;
-	    //pdu_salida-> monto = m;
-
-	    //procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
+    //procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
 
 		//registrar(bitacora_entrada,pdu_entrante);
 		if (numero_bytes = sendto(socketfd, pdu_salida,MAX_PDU_LENGTH, 0,
-								(struct sockaddr*) &datos_cliente, 
+								(struct sockaddr*) &datos_cliente,
 								sizeof(struct sockaddr)) == -1){
 				error("Error enviando datos al cliente.");
 		}

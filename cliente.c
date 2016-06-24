@@ -47,7 +47,7 @@ void * leer_args(int argc, char *argv[], char *dominio,
 }
 
 /* Programa Principal*/
-int main(int argc, char *argv[]) { 
+int main(int argc, char *argv[]) {
 
 
     /*Almacentaran los argumentos recibidos de la linea de comandos*/
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     /*Leemos los argumentos y los asignamos a las variables respectivas.*/
     leer_args(argc,argv,dominio,&numero_puerto,&op,&id);
-    
+
 
     /* sockfd: descriptor del socket.
     * numero_bytes: numero de bytes recibidos.
@@ -66,32 +66,32 @@ int main(int argc, char *argv[]) {
 
     int sockfd, numero_bytes, tam_direccion;
 
-    /* Guarda la direccion IP y numero de puerto del servidor */ 
-    struct sockaddr_in datos_servidor; 
-    
-    /* Obtiene nombre del host */ 
-    struct hostent *host; 
-    
+    /* Guarda la direccion IP y numero de puerto del servidor */
+    struct sockaddr_in datos_servidor;
 
-    /* Se convierte el hostname a su direccion IP */ 
-    if ((host=gethostbyname(dominio)) == NULL) { 
-        perror("No se pudo obtener la direccion del host"); 
-        exit(1); 
-    } 
+    /* Obtiene nombre del host */
+    struct hostent *host;
 
-    /* Creamos el socket */ 
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) { 
-        perror("socket"); 
-        exit(2); 
-    } 
+
+    /* Se convierte el hostname a su direccion IP */
+    if ((host=gethostbyname(dominio)) == NULL) {
+        perror("No se pudo obtener la direccion del host");
+        exit(1);
+    }
+
+    /* Creamos el socket */
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+        perror("socket");
+        exit(2);
+    }
 
     memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
 
-    /* Asignamos los datos del servidor */ 
-    datos_servidor.sin_family = AF_INET; 
-    datos_servidor.sin_port = htons(numero_puerto); 
-    datos_servidor.sin_addr = *((struct in_addr *)host->h_addr); 
-    bzero(&(datos_servidor.sin_zero), 8); 
+    /* Asignamos los datos del servidor */
+    datos_servidor.sin_family = AF_INET;
+    datos_servidor.sin_port = htons(numero_puerto);
+    datos_servidor.sin_addr = *((struct in_addr *)host->h_addr);
+    bzero(&(datos_servidor.sin_zero), 8);
 
     /* PDU de entrada */
     PDU *pdu_entrante;
@@ -108,11 +108,11 @@ int main(int argc, char *argv[]) {
     pdu_salida-> placa = id;
 
 
-    /* Se envían los datos al servidor */ 
+    /* Se envían los datos al servidor */
     if ((numero_bytes = sendto(sockfd,pdu_salida,MAX_PDU_LENGTH,0,(struct sockaddr *)&datos_servidor,
-    sizeof(struct sockaddr))) == -1) { 
-        perror("sendto"); 
-        exit(2); 
+    sizeof(struct sockaddr))) == -1) {
+        perror("sendto");
+        exit(2);
     }
 
     memset(pdu_entrante,'\0', MAX_PDU_LENGTH);
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
         error("Error recibiendo datos del cliente.");
     }
 
-    printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr)); 
+    printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr));
     printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
     printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
     if (pdu_entrante-> puesto){
@@ -132,13 +132,18 @@ int main(int argc, char *argv[]) {
         printf("NO HAY PUESTO :(\n");
     }
 
+    char fecha[18];
+    struct tm tmp;
+    //localtime_r(&pdu_entrante-> fecha_hora,&tmp);
+    //strftime(fecha,sizeof(fecha),"%D %T",&tmp);
+
     printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-    printf("Hora de Entrada/Salida: %s\n", pdu_entrante-> fecha_hora);
+    printf("Hora de Entrada/Salida: %s\n",fecha);
     printf("Ticket n°: %d\n", pdu_entrante-> codigo);
     //printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
-    
-    
-    /* cierro socket */ 
-    close(sockfd); 
-    exit (0); 
+
+
+    /* cierro socket */
+    close(sockfd);
+    exit (0);
 }
