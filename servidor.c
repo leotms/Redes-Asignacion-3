@@ -122,7 +122,7 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados, 
+void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados,
 					PDU * pdu_salida){
 
 	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
@@ -164,7 +164,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		char fecha[18];
 
 		time_t t1 = time(NULL);
-		struct tm *tmp; 
+		struct tm *tmp;
 		tmp = localtime(&t1);
 
 		strftime(fecha,sizeof(fecha),"%D %T",tmp);
@@ -214,7 +214,7 @@ void * salida(PDU * pdu_salida){
 	char fecha[18];
 
 	time_t t1 = time(NULL);
-	struct tm *tmp; 
+	struct tm *tmp;
 	tmp = localtime(&t1);
 
 	strftime(fecha,sizeof(fecha),"%D %T",tmp);
@@ -294,60 +294,83 @@ void main(int argc, char *argv[]) {
 									(struct sockaddr*) &datos_cliente,
 									(socklen_t *) &tam_direccion)) == -1){
 			error("Error recibiendo datos del cliente.");
+
+		} else {
+
+			int size_1 = sizeof(pdu_salida);
+			int size_2 = sizeof(PDU);
+
+			printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
+			printf("Longitud del PDU en bytes %d\n",numero_bytes);
+			printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
+			printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+			printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+
+			procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+
+			salida(pdu_salida);
+
+			int m;
+			m = 50;
+			salida1(m);
+
+			if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
+									(struct sockaddr*) &datos_cliente,
+									sizeof(struct sockaddr)) == -1){
+				error("Error enviando datos al cliente.");
+			}
+
 		}
 
 
 		/* Imprimimos en pantalla el mensaje recibido.*/
-		printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
-		printf("Longitud del PDU en bytes %d\n",numero_bytes);
-		printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
-		printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+		// printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
+		// printf("Longitud del PDU en bytes %d\n",numero_bytes);
+		// printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
+		// printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+		// printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
 		//registrar(bitacora_entrada,pdu_entrante);
+		//
+		// procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+		//
+		// salida(pdu_salida);
+		//
+		// int m;
+		// m = 50;
+		// salida1(m);
 
-/*
-		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
-
-		salida(pdu_salida);
-
-		int m;
-		m = 50;
-		salida1(m);
-*/
-
-/* COMENTAR ESTE BLOQUE CUANDO UTILICES CUALQUIERA DE LAS FUNCIONES ANTERIORES */ 
-
-		pdu_salida-> fuente = true;
-		pdu_salida-> placa = pdu_entrante->placa;
-		char fecha[18];
-
-		time_t t1 = time(NULL);
-		struct tm *tmp; 
-		tmp = localtime(&t1);
-
-		strftime(fecha,sizeof(fecha),"%D %T",tmp);
-		pdu_salida-> puesto = true;
-		strcpy(pdu_salida->fecha_hora,fecha);
-		pdu_salida-> codigo = 1;
+/* COMENTAR ESTE BLOQUE CUANDO UTILICES CUALQUIERA DE LAS FUNCIONES ANTERIORES */
+		//
+		// pdu_salida-> fuente = true;
+		// pdu_salida-> placa = pdu_entrante->placa;
+		// char fecha[18];
+		//
+		// time_t t1 = time(NULL);
+		// struct tm *tmp;
+		// tmp = localtime(&t1);
+		//
+		// strftime(fecha,sizeof(fecha),"%D %T",tmp);
+		// pdu_salida-> puesto = true;
+		// strcpy(pdu_salida->fecha_hora,fecha);
+		// pdu_salida-> codigo = 1;
 
 /* DESCOMENTAR EL BLQUE DE ARRIBA SI QUIERES PASAR EL PDU DIRECTO */
 
-		printf("\n *******PDU SALIDA***********\n");
-		printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
-		printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
-		printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
-		printf("Hora de Entrada/Salida: %s\n", pdu_salida->fecha_hora);
-		printf("Ticket n°: %d\n", pdu_salida-> codigo);
+		// printf("\n *******PDU SALIDA***********\n");
+		// printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
+		// printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
+		// printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
+		// printf("Hora de Entrada/Salida: %s\n", pdu_salida->fecha_hora);
+		// printf("Ticket n°: %d\n", pdu_salida-> codigo);
 
 
-		if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
-								(struct sockaddr*) &datos_cliente, 
-								sizeof(struct sockaddr)) == -1){
-			error("Error enviando datos al cliente.");
-		}
+		// if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
+		// 						(struct sockaddr*) &datos_cliente,
+		// 						sizeof(struct sockaddr)) == -1){
+		// 	error("Error enviando datos al cliente.");
+		// }
 
-		
 	}
 
 	close(socketfd);
