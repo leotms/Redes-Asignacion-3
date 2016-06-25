@@ -122,7 +122,8 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados){
+void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados, 
+					PDU * pdu_salida){
 
 	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
 	REG_VEHICULO * vehiculo;
@@ -158,6 +159,20 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 
+		pdu_salida-> fuente = true;
+		pdu_salida-> placa = pdu_entrante->placa;
+		char fecha[18];
+
+		time_t t1 = time(NULL);
+		struct tm *tmp; 
+		tmp = localtime(&t1);
+
+		strftime(fecha,sizeof(fecha),"%D %T",tmp);
+		pdu_salida-> puesto = true;
+		strcpy(pdu_salida->fecha_hora,fecha);
+		pdu_salida-> codigo = 1;
+
+
 	} else if (pdu_entrante->tipo_paq == 's') {
 		/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
 		vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
@@ -191,6 +206,25 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		}
 	}
 }
+
+void * salida(PDU * pdu_salida){
+
+	pdu_salida-> fuente = true;
+	//pdu_salida-> placa = pdu_entrante->placa;
+	char fecha[18];
+
+	time_t t1 = time(NULL);
+	struct tm *tmp; 
+	tmp = localtime(&t1);
+
+	strftime(fecha,sizeof(fecha),"%D %T",tmp);
+	pdu_salida-> puesto = true;
+	strcpy(pdu_salida->fecha_hora,fecha);
+	pdu_salida-> codigo = 1;
+
+}
+
+
 
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
@@ -266,47 +300,28 @@ void main(int argc, char *argv[]) {
 		printf("Longitud del PDU en bytes %d\n",numero_bytes);
 		printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
 		printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
-	  printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+		printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
-	  /* EL PDU DE SALIDA DEBERIA CONSTRUIRSE DENTRO DE procesar_pdu*/
+		//registrar(bitacora_entrada,pdu_entrante);
 
-    /* Hora y Fecha del sistema */
-    char fecha[18];
-    time_t t;
-		time(&t);
-    struct tm tmp;
-    localtime_r(&t,&tmp);
-    strftime(fecha,sizeof(fecha),"%D %T",&tmp);
+//		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
 
-    int c, m;
+		salida(pdu_salida);
 
-    //c = (int *)malloc(sizeof(int));
-    c = 100;
-    //m = (int *)malloc(sizeof(int));
-    m = 80;
+		printf("\n********PDU SALIDA***********\n");
+		printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
+		printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
+		printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
+		printf("Hora de Entrada/Salida: %s\n", pdu_salida->fecha_hora);
+		printf("Ticket n°: %d\n", pdu_salida-> codigo);
 
-    /* Datos a enviar/Recibir */
+		if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
+								(struct sockaddr*) &datos_cliente, 
+								sizeof(struct sockaddr)) == -1){
+			error("Error enviando datos al cliente.");
+		}
 
-    pdu_salida-> fuente = true;
-    pdu_salida-> puesto = true;
-    pdu_salida-> placa = pdu_entrante->placa;
-    strcpy(pdu_salida->fecha_hora,fecha);
-    pdu_salida-> codigo = c;
-
-    //registrar(bitacora_entrada,pdu_entrante);
-
-		/* ESTA COMENTADO PORQUE POR ALGUNA RAZON DA ERROR **PROBAR** */
-
-		// if (numero_bytes = sendto(socketfd, pdu_salida, sizeof(PDU), 0,
-		// 						(struct sockaddr*) &datos_cliente,
-		// 						sizeof(struct sockaddr)) == -1){
-		// 		error("Error enviando datos al cliente.");
-		// }
-
-		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados);
-
-		fflush(stdout);
-
+		
 	}
 
 	close(socketfd);

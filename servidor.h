@@ -2,7 +2,7 @@
 * Sahid Reyes 		10-10603
 * Leonardo Martinez 11-10576
 *
-* Ultima Modificacion 21/06/16
+* Ultima Modificacion 24/06/16
 */
 
 /* Librerias a utilizar */
@@ -41,4 +41,6 @@ void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]);
 int calcular_pago(time_t hora_entrada, time_t hora_salida);
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos);
+void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos, PDU* pdu_salida);
+
+void * salida(PDU * pdu_salida);
