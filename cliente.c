@@ -122,8 +122,8 @@ int main(int argc, char *argv[]) {
       error("Error recibiendo datos del cliente.");
   }
 
-  printf("enviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr));
-  printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+  printf("\nEnviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr));
+  printf("\nOrígen del paquete: %d\n", pdu_entrante-> fuente);
   printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
   if (pdu_entrante-> puesto){
           printf("HAY PUESTO :D\n");

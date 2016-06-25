@@ -224,7 +224,9 @@ void * salida(PDU * pdu_salida){
 
 }
 
-
+void * salida1 (int m){
+	m = 1000;
+}
 
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
@@ -304,16 +306,40 @@ void main(int argc, char *argv[]) {
 
 		//registrar(bitacora_entrada,pdu_entrante);
 
-//		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+/*
+		procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
 
 		salida(pdu_salida);
 
-		printf("\n********PDU SALIDA***********\n");
+		int m;
+		m = 50;
+		salida1(m);
+*/
+
+/* COMENTAR ESTE BLOQUE CUANDO UTILICES CUALQUIERA DE LAS FUNCIONES ANTERIORES */ 
+
+		pdu_salida-> fuente = true;
+		pdu_salida-> placa = pdu_entrante->placa;
+		char fecha[18];
+
+		time_t t1 = time(NULL);
+		struct tm *tmp; 
+		tmp = localtime(&t1);
+
+		strftime(fecha,sizeof(fecha),"%D %T",tmp);
+		pdu_salida-> puesto = true;
+		strcpy(pdu_salida->fecha_hora,fecha);
+		pdu_salida-> codigo = 1;
+
+/* DESCOMENTAR EL BLQUE DE ARRIBA SI QUIERES PASAR EL PDU DIRECTO */
+
+		printf("\n *******PDU SALIDA***********\n");
 		printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
 		printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
 		printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
 		printf("Hora de Entrada/Salida: %s\n", pdu_salida->fecha_hora);
 		printf("Ticket n°: %d\n", pdu_salida-> codigo);
+
 
 		if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
 								(struct sockaddr*) &datos_cliente, 

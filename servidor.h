@@ -44,3 +44,5 @@ int calcular_pago(time_t hora_entrada, time_t hora_salida);
 void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos, PDU* pdu_salida);
 
 void * salida(PDU * pdu_salida);
+
+void * salida1(int m);
