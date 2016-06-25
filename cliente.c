@@ -45,6 +45,8 @@ void * leer_args(int argc, char *argv[], char *dominio,
     }
 }
 
+
+
 /* Programa Principal*/
 int main(int argc, char *argv[]) {
 
@@ -144,25 +146,49 @@ int main(int argc, char *argv[]) {
             exit(2);
         }
 
-        if (numero_bytes_recibidos == -1){
+        memset(pdu_entrante,'\0', sizeof(PDU));
+
+      	if (numero_bytes_recibidos == -1){
             printf("Sin respuesta del servidor. Reenviando...\n");
         }
+        
+
         cont++;
     }
 
-    printf("\nEnviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr));
-    printf("\nOrígen del paquete: %d\n", pdu_entrante-> fuente);
-    printf("Puestos disponibles: %d\n", pdu_entrante-> puesto);
-    if (pdu_entrante-> puesto){
-        printf("HAY PUESTO :D\n");
-    } else{
-        printf("NO HAY PUESTO :(\n");
-    }
+    printf("OPERACION: %c\n",pdu_entrante->tipo_paq);
 
-    printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-    printf("Hora de Entrada/Salida: %s\n", pdu_entrante->fecha_hora);
-    printf("Ticket n°: %d\n", pdu_entrante-> codigo);
-    //printf("Monto a Cancelar: %d\n", pdu_entrante-> monto);
+
+   switch(pdu_entrante->tipo_paq) {
+
+   case 'e':
+        if (pdu_entrante->puesto < 3){
+            printf("\n*** Hay puestos disponibles ***\n\n");
+            printf("--------------------------------------\n");
+            printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+            printf("| Hora de Entrada: %s \n", pdu_entrante->fecha_hora);
+            printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
+            printf("--------------------------------------\n");
+        } else {
+            printf("\n****No hay puestos disponibles\n");
+        }
+
+      break; 
+    
+   case 's':
+            printf("\n*** Hay puestos disponibles ***\n\n");
+            printf("--------------------------------------\n");
+            printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+            printf("| Hora de Salida: %s \n", pdu_entrante->fecha_hora);
+            printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
+            printf("| *** Monto a Cancelar: %d ***\n",pdu_entrante->monto);
+            printf("--------------------------------------\n");
+      break; 
+  
+   default :
+        printf("Error en el mensaje del Servidor\n"); 
+   
+    }
 
 
     /* cierro socket */

@@ -159,18 +159,26 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 		/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 
-		pdu_salida-> fuente = true;
-		pdu_salida-> placa = pdu_entrante->placa;
-		char fecha[18];
+        pdu_salida-> tipo_paq = 'e';
+        pdu_salida-> fuente = true;
+        pdu_salida-> placa = pdu_entrante->placa;
 
-		time_t t1 = time(NULL);
-		struct tm *tmp;
-		tmp = localtime(&t1);
+        if (*puestos_ocupados < 3) {
+                
+            char fecha[18];
 
-		strftime(fecha,sizeof(fecha),"%D %T",tmp);
-		pdu_salida-> puesto = true;
-		strcpy(pdu_salida->fecha_hora,fecha);
-		pdu_salida-> codigo = 1;
+            time_t t1 = time(NULL);
+            struct tm *tmp;
+            tmp = localtime(&t1);
+
+            strftime(fecha,sizeof(fecha),"%D %T",tmp);
+            pdu_salida-> puesto = true;
+            strcpy(pdu_salida->fecha_hora,fecha);
+            pdu_salida-> codigo = 1;
+
+        } else {
+            pdu_salida-> puesto = false;         
+        }
 
 
 	} else if (pdu_entrante->tipo_paq == 's') {
@@ -200,6 +208,22 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 			int monto_a_pagar = calcular_pago(vehiculo->tiempo_entrada,t);
 
 			/* Aqui le enviamos al cliente el mensaje correspondiente*/
+
+	        pdu_salida-> tipo_paq = 's';
+	        pdu_salida-> fuente = true;
+	        pdu_salida-> placa = pdu_entrante->placa;
+
+			char fecha[18];
+
+            time_t t1 = time(NULL);
+            struct tm *tmp;
+            tmp = localtime(&t1);
+
+            strftime(fecha,sizeof(fecha),"%D %T",tmp);
+            pdu_salida-> puesto = true;
+            strcpy(pdu_salida->fecha_hora,fecha);
+            pdu_salida-> codigo = 1;
+            pdu_salida->monto = monto_a_pagar;
 
 			/*Liberamos la memoria del vehiculo*/
 			free(vehiculo);
@@ -308,7 +332,7 @@ void main(int argc, char *argv[]) {
 
 			procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
 
-			salida(pdu_salida);
+//			salida(pdu_salida);
 
 			int m;
 			m = 50;
