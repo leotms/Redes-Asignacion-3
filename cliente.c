@@ -108,14 +108,14 @@ int main(int argc, char *argv[]) {
 
     /* Tiempo de Espera de respuesta del Servidor */
     struct timeval tv;
-    tv.tv_sec = 2;
+    tv.tv_sec = 5;
     tv.tv_usec = 0;
 
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0) {
         perror("Error");
     }
 
-    /* Se envían los datos al servidor */
+    /* Se envían los datos al servidor la primera vez */
     if ((numero_bytes = sendto(sockfd,pdu_salida,sizeof(PDU),0,(struct sockaddr *)&datos_servidor,
                     sizeof(struct sockaddr))) == -1) {
         perror("sendto");
@@ -125,14 +125,18 @@ int main(int argc, char *argv[]) {
     memset(pdu_entrante,'\0', sizeof(PDU));
 
 
-//  int cont;
-//  cont = 0;
+    int cont = 0;
+    int numero_bytes_recibidos;
 
-    while ((numero_bytes = recvfrom(sockfd, pdu_entrante, sizeof(PDU), 0,
+    /* Mientras no exista respuesta del servidor, intentamos hasta el maximo de intentos*/
+
+    while ((numero_bytes_recibidos = recvfrom(sockfd, pdu_entrante, sizeof(PDU), 0,
         (struct sockaddr*) &datos_servidor, (socklen_t *) &tam_direccion)) == -1){
 
-
-        printf("Reenviando...\n");
+        if (cont == 2) {
+          printf("Tiempo maximo de espera para respuesta terminado.\n");
+          exit(0);
+        }
 
         if ((numero_bytes = sendto(sockfd,pdu_salida,sizeof(PDU),0,(struct sockaddr *)&datos_servidor,
                     sizeof(struct sockaddr))) == -1) {
@@ -140,13 +144,10 @@ int main(int argc, char *argv[]) {
             exit(2);
         }
 
-        if (numero_bytes == -1){  //en este condicional deberia haber un cont == 2, y deberia esta encima
-                                    //del reenviar para que no lo imprima una tercera vez  
-            perror("Error recibiendo datos del cliente.");
+        if (numero_bytes_recibidos == -1){
+            printf("Sin respuesta del servidor. Reenviando...\n");
         }
-        
-
-//      cont++;
+        cont++;
     }
 
     printf("\nEnviados %d bytes hacia %s\n",numero_bytes,inet_ntoa(datos_servidor.sin_addr));
