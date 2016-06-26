@@ -136,6 +136,7 @@ int main(int argc, char *argv[]) {
 
         if (cont == 2) {
           printf("Tiempo maximo de espera para respuesta terminado.\n");
+          printf("Intente de nuevo mas tarde.\n");
           exit(0);
         }
 
@@ -154,9 +155,6 @@ int main(int argc, char *argv[]) {
 
         cont++;
     }
-
-    printf("OPERACION: %c\n",pdu_entrante->tipo_paq);
-
 
    switch(pdu_entrante->tipo_paq) {
 
@@ -218,7 +216,7 @@ int main(int argc, char *argv[]) {
 
    default :
 
-      printf("Error en el mensaje del Servidor\n");
+      printf("Error recibiendo respuesta del servidor\n");
 
     }
 

@@ -361,7 +361,7 @@ void main(int argc, char *argv[]) {
 
 	while(1){
 
-		printf("\nEsperando datos del cliente...\n");
+		printf("\nEsperando solicitudes de los clientes...\n");
 
 		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, sizeof(PDU), 0,
 									(struct sockaddr*) &datos_cliente,
