@@ -15,6 +15,7 @@
 /*Estructura para el registro de vehiculos*/
 typedef struct reg_vehiculo{
   int placa;
+  int ticket;
   time_t tiempo_entrada;
 } REG_VEHICULO;
 
@@ -41,7 +42,9 @@ void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]);
 int calcular_pago(time_t hora_entrada, time_t hora_salida);
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * num_puestos, PDU* pdu_salida);
+void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
+                    int * puestos_ocupados, int * numero_tickets,
+                    PDU * pdu_salida);
 
 void * salida(PDU * pdu_salida);
 

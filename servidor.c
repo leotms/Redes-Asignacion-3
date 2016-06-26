@@ -28,7 +28,7 @@ void * registrar(char *bitacora, PDU *pdu){
 }
 
 /*Ingresa un vehiculo en el estacionamiento*/
-void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo){
+void * ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo){
   int i;
   for (i = 0; i < MAX_PUESTOS; i++){
     if (estacionamiento[i] == NULL){
@@ -122,8 +122,9 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * puestos_ocupados,
-					PDU * pdu_salida){
+void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
+                    int * puestos_ocupados, int * numero_tickets,
+                    PDU * pdu_salida){
 
 	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
 	REG_VEHICULO * vehiculo;
@@ -131,104 +132,107 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
 	/*Este sera el tiempo de entrada o salida del vehiculo segun corresponda*/
 	time_t t = time(NULL);
 
-	if (pdu_entrante->tipo_paq == 'e'){
+	switch(pdu_entrante->tipo_paq) {
 
-		/*Falta comprobar si hay puestos en el estacionamiento*/
+		/* Corresponde a una solicitud de entrada*/
+		case 'e':
 
-		/*Como la operacion es de entrada, reservamos la memoria para el nuevo
-		 * vehiculo y le asignamos los valores correspondientes.*/
-		vehiculo = (REG_VEHICULO *) malloc(sizeof(REG_VEHICULO));
-		memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
-		memcpy(&vehiculo->tiempo_entrada,&t,sizeof(time_t));
+			/*Como la operacion es de entrada, reservamos la memoria para el nuevo
+			 * vehiculo y le asignamos los valores correspondientes.*/
+			vehiculo = (REG_VEHICULO *) calloc(1,sizeof(REG_VEHICULO));
+			memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
+			memcpy(&vehiculo->ticket,numero_tickets,sizeof(int));
+			memcpy(&vehiculo->tiempo_entrada,&t,sizeof(time_t));
 
-		// se le hace strftime a tiempo_entrada para el PDU
-		struct tm tiempo_entrada;
-		localtime_r(&t,&tiempo_entrada);
+			// se le hace strftime a tiempo_entrada para el PDU
+			struct tm tiempo_entrada;
+			localtime_r(&t,&tiempo_entrada);
 
-		/*Ingresamos el vehiculo al estacionamiento*/
-		ingresar_vehiculo(estacionamiento,vehiculo);
+			/*Ingresamos el vehiculo al estacionamiento*/
+			ingresar_vehiculo(estacionamiento,vehiculo);
 
-		/*Imprimimos el vehiculo solo para verificar*/
-		imprimir_estacionamiento(estacionamiento);
-
-		/*Incrementamos el numero de puestos*/
-		*puestos_ocupados = *puestos_ocupados + 1;
-
-		printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
-
-		/* Aqui le enviamos al cliente el mensaje correspondiente*/
-
-
-        pdu_salida-> tipo_paq = 'e';
-        pdu_salida-> fuente = true;
-        pdu_salida-> placa = pdu_entrante->placa;
-
-        if (*puestos_ocupados < 3) {
-
-            char fecha[18];
-
-            time_t t1 = time(NULL);
-            struct tm *tmp;
-            tmp = localtime(&t1);
-
-            strftime(fecha,sizeof(fecha),"%D %T",tmp);
-            pdu_salida-> puesto = true;
-            strcpy(pdu_salida->fecha_hora,fecha);
-            pdu_salida-> codigo = 1;
-
-        } else {
-            pdu_salida-> puesto = false;
-        }
-
-
-	} else if (pdu_entrante->tipo_paq == 's') {
-		/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
-		vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
-
-		// Aqui se calcula el tiempo en el que el carro salio del estacionamiento
-
-	  // se le hace strftime a tiempo_salida para el PDU
-		struct tm tiempo_salida;
-		localtime_r(&t,&tiempo_salida);
-
-		/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
-		if (vehiculo == NULL) {
-			printf("El vehiculo con placa %d no existe o hubo un error.\n", pdu_entrante->placa);
 			/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
-		} else {
-			printf("El vehiculo retirado es:  %d\n", vehiculo->placa);
+			pdu_salida-> tipo_paq = 'e';
+			pdu_salida-> fuente = true;
+			pdu_salida-> placa = pdu_entrante->placa;
+
+			if (*puestos_ocupados < 3) {
+
+			    char fecha[18];
+
+			    time_t t1 = time(NULL);
+			    struct tm *tmp;
+			    tmp = localtime(&t1);
+
+			    strftime(fecha,sizeof(fecha),"%D %T",tmp);
+			    pdu_salida-> puesto = true;
+			    strcpy(pdu_salida->fecha_hora,fecha);
+			    pdu_salida-> codigo = *numero_tickets;
+
+			} else {
+			    pdu_salida-> puesto = false;
+			}
+
+			/*Incrementamos el numero de puestos y el numero de los tickets*/
+			*puestos_ocupados = *puestos_ocupados + 1;
+			*numero_tickets   = *numero_tickets + 1;
+
 			/*Imprimimos el vehiculo solo para verificar*/
 			imprimir_estacionamiento(estacionamiento);
-			/*Decrementamos el numero de puestos*/
-			*puestos_ocupados = *puestos_ocupados - 1;
 			printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
 
-			//Se calcula el tipo de pago.
-			int monto_a_pagar = calcular_pago(vehiculo->tiempo_entrada,t);
+			break;
+		case 's' :
 
-			/* Aqui le enviamos al cliente el mensaje correspondiente*/
+			/*En este caso, vehiculo corresponde el vehiculo que sacaremos del estacionamiento*/
+			vehiculo = retirar_vehiculo(estacionamiento, &pdu_entrante->placa);
 
-	        pdu_salida-> tipo_paq = 's';
-	        pdu_salida-> fuente = true;
-	        pdu_salida-> placa = pdu_entrante->placa;
+			// Aqui se calcula el tiempo en el que el carro salio del estacionamiento
+		  // se le hace strftime a tiempo_salida para el PDU
+			struct tm tiempo_salida;
+			localtime_r(&t,&tiempo_salida);
 
-			char fecha[18];
+			/*Si vehiculo retorna como NULL, entonces no exitia o hubo un error.*/
+			if (vehiculo == NULL) {
+				printf("El vehiculo con placa %d no existe o hubo un error.\n", pdu_entrante->placa);
+				/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
-            time_t t1 = time(NULL);
-            struct tm *tmp;
-            tmp = localtime(&t1);
+			} else {
 
-            strftime(fecha,sizeof(fecha),"%D %T",tmp);
-            pdu_salida-> puesto = true;
-            strcpy(pdu_salida->fecha_hora,fecha);
-            pdu_salida-> codigo = 1;
-            pdu_salida->monto = monto_a_pagar;
+				//Se calcula el tipo de pago.
+					int monto_a_pagar = calcular_pago(vehiculo->tiempo_entrada,t);
 
-			/*Liberamos la memoria del vehiculo*/
-			free(vehiculo);
+					/* Aqui le enviamos al cliente el mensaje correspondiente*/
+
+					pdu_salida-> tipo_paq = 's';
+					pdu_salida-> fuente   = true;
+					pdu_salida-> placa    = pdu_entrante->placa;
+
+					char fecha[18];
+
+					time_t t1 = time(NULL);
+					struct tm *tmp;
+					tmp = localtime(&t1);
+
+					strftime(fecha,sizeof(fecha),"%D %T",tmp);
+					pdu_salida-> puesto = true;
+					strcpy(pdu_salida->fecha_hora,fecha);
+					pdu_salida-> codigo = vehiculo->ticket;
+					pdu_salida->monto   = monto_a_pagar;
+
+					printf("El vehiculo retirado es:  %d\n", vehiculo->placa);
+					/*Liberamos la memoria del vehiculo*/
+					free(vehiculo);
+					/*Imprimimos el estacionamiento solo para verificar*/
+					imprimir_estacionamiento(estacionamiento);
+					/*Decrementamos el numero de puestos*/
+					*puestos_ocupados = *puestos_ocupados - 1;
+					printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
+			}
+
+			break;
 		}
-	}
 }
 
 void * salida(PDU * pdu_salida){
@@ -260,6 +264,9 @@ void main(int argc, char *argv[]) {
 
 	/*Numero de pustos ocupados en el estacionamiento*/
 	int puestos_ocupados = 0;
+
+	/* Numero de los tickets */
+	int numero_tickets   = 0;
 
 	/*Almacentaran los argumentos recibidos de la linea de comandos*/
 	int numero_puerto;
@@ -343,7 +350,8 @@ void main(int argc, char *argv[]) {
 			if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
 				pdu_respuesta = pdu_informacion;
 			} else {
-				procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+				procesar_pdu(pdu_entrante,estacionamiento,
+										 &puestos_ocupados, &numero_tickets, pdu_salida);
 				pdu_respuesta = pdu_salida;
 			}
 
