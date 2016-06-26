@@ -23,7 +23,7 @@ typedef struct reg_vehiculo{
 void * error(char * mensaje);
 
 /*Registra un mensaje en la bitacora indicada*/
-void * registrar(char *bitacora, PDU *pdu);
+void * registrar(char *bitacora_entrada, char *bitacora_salida,PDU *pdu_entrante, int respuesta);
 
 /*Funcion que verifica y retorna los argumentos de la linea de comandos*/
 void *leer_args(int argc, char *argv[], int *numero_puerto,
@@ -45,7 +45,3 @@ int calcular_pago(time_t hora_entrada, time_t hora_salida);
 int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
                  int * puestos_ocupados, int * numero_tickets,
                  PDU * pdu_salida);
-
-void * salida(PDU * pdu_salida);
-
-void * salida1(int m);

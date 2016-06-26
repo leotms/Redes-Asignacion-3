@@ -15,16 +15,79 @@ void * error(char * mensaje){
 }
 
 /*Registra un mensaje en la bitacora indicada*/
-void * registrar(char *bitacora, PDU *pdu){
-	FILE *archivo;
-	if ((archivo = fopen(bitacora,"a")) == NULL) {
+void * registrar(char *bitacora_entrada, char *bitacora_salida ,PDU *pdu_entrante, int respuesta){
+
+	FILE *archivo_in;	
+	if ((archivo_in = fopen(bitacora_entrada,"a")) == NULL) {
 		error("No se pudo abrir el archivo de bitacora");
 	}
 
-	//fputc(pdu-> placa,archivo);
-	// fputs(op,archivo);
-	fclose(archivo);
+	FILE *archivo_out;
+	if ((archivo_out = fopen(bitacora_salida,"a")) == NULL) {
+		error("No se pudo abrir el archivo de bitacora");
+	}
 
+	char fecha[18];
+	time_t t1 = time(NULL);
+	struct tm *tmp;
+	tmp = localtime(&t1);
+	strftime(fecha,sizeof(fecha),"%D %T",tmp);
+	
+	switch(pdu_entrante->tipo_paq) {
+
+		case 'e':
+			
+			fprintf(archivo_in,"Tipo de Operación: %c\n",pdu_entrante->tipo_paq);
+			fprintf(archivo_in,"Fecha y hora %s\n",pdu_entrante->fecha_hora);
+			fprintf(archivo_in,"Placa: %d\n",pdu_entrante-> placa);
+			fprintf(archivo_in,"N° Ticket: %d\n",pdu_entrante-> n_ticket);
+			fprintf(archivo_in,"%s\n","Solicitud atendida satisfactoriamente");
+			fprintf(archivo_in,"%s\n","--------------------------------------");
+			fclose(archivo_in);
+			break;
+
+		case 's':
+
+			fprintf(archivo_out,"Tipo de Operación: %c\n",pdu_entrante->tipo_paq);
+			fprintf(archivo_out,"Fecha y hora %s\n",pdu_entrante->fecha_hora);
+			fprintf(archivo_out,"Placa: %d\n",pdu_entrante-> placa);
+			fprintf(archivo_out,"N° Ticket: %d\n",pdu_entrante-> n_ticket);
+			fprintf(archivo_out,"Monto a cancelar: %d Bs\n",pdu_entrante->monto);
+			fprintf(archivo_out,"%s\n","Solicitud atendida satisfactoriamente");
+			fprintf(archivo_out,"%s\n","--------------------------------------");
+			fclose(archivo_out);
+			break;
+
+		case 'o':
+			switch (pdu_entrante->codigo) {
+
+				case 0: // estacionamiento sin puestos
+					fprintf(archivo_in,"%s\n","Tipo de Operación: e");
+					fprintf(archivo_in,"Fecha y hora %s\n",fecha);
+					fprintf(archivo_in,"%s\n","Solicitud no atendida: Estacionamiento lleno");
+					fprintf(archivo_in,"%s\n","--------------------------------------");
+					fclose(archivo_in);
+					break;
+
+				case 1: // vehiculo exitente
+					fprintf(archivo_in,"%s\n","Tipo de Operación: e");
+					fprintf(archivo_in,"Fecha y hora %s\n",fecha);
+					fprintf(archivo_in,"%s\n","Solicitud no atendida: Vehículo ya estacionado");
+					fprintf(archivo_in,"%s\n","--------------------------------------");
+					fclose(archivo_in);
+					break;
+
+				case 2: // vehiculo no esta en el estacionamiento
+					fprintf(archivo_out,"%s\n","Tipo de Operación: s");
+					fprintf(archivo_out,"Fecha y hora %s\n",fecha);
+					fprintf(archivo_out,"%s\n","Solicitud no atendida: Vehículo inexistente");
+					fprintf(archivo_out,"%s\n","--------------------------------------");
+					fclose(archivo_out);
+					break;
+			}
+		break;
+
+	}
 }
 
 int buscar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa){
@@ -173,8 +236,9 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 					pdu_salida-> tipo_paq = 'e';
 					pdu_salida-> fuente = true;
 					pdu_salida-> placa = pdu_entrante->placa;
-
-					if (*puestos_ocupados < 3) {
+					pdu_salida-> n_ticket = *numero_tickets;
+					
+					if (*puestos_ocupados < 2) {
 
 					    char fecha[18];
 
@@ -184,8 +248,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 
 					    strftime(fecha,sizeof(fecha),"%D %T",tmp);
 					    pdu_salida-> puesto = true;
-					    strcpy(pdu_salida->fecha_hora,fecha);
-					    pdu_salida-> codigo = *numero_tickets;
+					    strcpy(pdu_salida->fecha_hora,fecha);    
 
 					} else {
 					    pdu_salida-> puesto = false;
@@ -235,7 +298,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 					strftime(fecha,sizeof(fecha),"%D %T",tmp);
 					pdu_salida-> puesto = true;
 					strcpy(pdu_salida->fecha_hora,fecha);
-					pdu_salida-> codigo = vehiculo->ticket;
+					pdu_salida->n_ticket = vehiculo->ticket;
 					pdu_salida->monto   = monto_a_pagar;
 
 					printf("El vehiculo retirado es:  %d\n", vehiculo->placa);
@@ -254,27 +317,6 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 		return res;
 }
 
-void * salida(PDU * pdu_salida){
-
-	pdu_salida-> fuente = true;
-	//pdu_salida-> placa = pdu_entrante->placa;
-	char fecha[18];
-
-	time_t t1 = time(NULL);
-	struct tm *tmp;
-	tmp = localtime(&t1);
-
-	strftime(fecha,sizeof(fecha),"%D %T",tmp);
-	pdu_salida-> puesto = true;
-	strcpy(pdu_salida->fecha_hora,fecha);
-	pdu_salida-> codigo = 1;
-
-}
-
-void * salida1 (int m){
-	m = 1000;
-}
-
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
 
@@ -290,12 +332,12 @@ void main(int argc, char *argv[]) {
 	/*Almacentaran los argumentos recibidos de la linea de comandos*/
 	int numero_puerto;
 	char *bitacora_entrada = (char *) malloc(512*sizeof(char));
-	char *bitacora_entrante  = (char *) malloc(512*sizeof(char));
+	char *bitacora_salida  = (char *) malloc(512*sizeof(char));
 
 	/*Leemos los argumentos y los asignamos a las variables respectivas.*/
-	leer_args(argc,argv,&numero_puerto, bitacora_entrada, bitacora_entrante);
+	leer_args(argc,argv,&numero_puerto, bitacora_entrada, bitacora_salida);
 	printf("Este es el archivo de entrada (afuera): %s\n", bitacora_entrada);
-	printf("Este es el archivo de salida (afuera): %s\n", bitacora_entrante);
+	printf("Este es el archivo de salida (afuera): %s\n", bitacora_salida);
 	printf("Este es el numero de puerto (afuera): %d\n", numero_puerto );
 
 	/*guardaran las los datos del cliente y servidor*/
@@ -361,13 +403,14 @@ void main(int argc, char *argv[]) {
 			printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 			printf("Longitud del PDU en bytes %d\n",numero_bytes);
 			printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-			printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
+			printf("Origen del paquete: %d\n", pdu_entrante-> fuente);
 			printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+
 
 			/* Es un apuntador al PDU que efectivamente se enviara*/
 			PDU * pdu_respuesta;
 
-			if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
+			if (puestos_ocupados == 3 && pdu_entrante -> tipo_paq == 'e') {
 				pdu_informacion->codigo = 0;
 				pdu_respuesta = pdu_informacion;
 
@@ -389,9 +432,11 @@ void main(int argc, char *argv[]) {
 						pdu_respuesta = pdu_informacion;
 						break;
 				}
+
+				registrar(bitacora_entrada,bitacora_salida,pdu_respuesta,resultado);
 			}
 
-			// Se envia la respusta del servidor
+			// Se envia la respuesta del servidor
 			if (numero_bytes = sendto(socketfd,pdu_respuesta,sizeof(PDU),0,
 									(struct sockaddr*) &datos_cliente,
 									sizeof(struct sockaddr)) == -1){

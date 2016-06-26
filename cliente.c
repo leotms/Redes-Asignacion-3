@@ -190,15 +190,18 @@ int main(int argc, char *argv[]) {
    case 'e':
 
       printf("--------------------------------------\n");
-      printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+      printf("|          Ticket n°: %d              \n", pdu_entrante-> n_ticket);
       printf("| Hora de Entrada: %s \n", pdu_entrante->fecha_hora);
       printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
       printf("--------------------------------------\n");
 
-      if (pdu_entrante->puesto < 3){
-        printf("\n*** HAY PUESTOS DISPONIBLES ***\n\n");
-      } else {
-        printf("\n*** NO HAY PUESTOS DISPONIBLES ***\n\n");
+      switch(pdu_entrante->puesto){
+        case 1:
+          printf("\n*** HAY PUESTOS DISPONIBLES ***\n\n");
+          break;
+        case 0:
+          printf("\n*** NO HAY PUESTOS DISPONIBLES ***\n\n");
+          break;
       }
 
       break;
@@ -206,10 +209,10 @@ int main(int argc, char *argv[]) {
    case 's':
 
       printf("--------------------------------------\n");
-      printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+      printf("|          Ticket n°: %d              \n", pdu_entrante-> n_ticket);
       printf("| Hora de Salida: %s \n", pdu_entrante->fecha_hora);
       printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
-      printf("| *** Monto a Cancelar: %d ***\n",pdu_entrante->monto);
+      printf("| *** Monto a Cancelar: %d Bs ***\n",pdu_entrante->monto);
       printf("--------------------------------------\n");
       printf("\n*** HAY PUESTOS DISPONIBLES ***\n\n");
       break;
