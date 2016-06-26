@@ -20,13 +20,13 @@
 
 typedef struct pdu_IO{
 
-	char tipo_paq;			// Operación a realizar
-	bool fuente;			// Origen del paquete
-	bool puesto;			// Indica si hay puesto o no
-	int placa;				// Placa del vehículo
-	char fecha_hora[18];	// Fecha y Hora de la operación	
-	int codigo;				// Inforamción de control
-	int monto;				// Monto a cancelar por el vehículo
-	int n_ticket;			// Número del ticket
+	char tipo_paq;		   	// Operación a realizar
+	bool fuente;			    // Origen del paquete
+	bool puesto;		    	// Indica si hay puesto o no
+	int  placa;			     	// Placa del vehículo
+	char fecha_hora[18];	// Fecha y Hora de la operación
+	int  codigo;		  		// Inforamción de control
+	int  monto;			     	// Monto a cancelar por el vehículo
+	int  n_ticket;		  	// Número del ticket
 
 } PDU;

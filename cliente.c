@@ -52,9 +52,9 @@ int main(int argc, char *argv[]) {
 
     /*Almacentaran los argumentos recibidos de la linea de comandos*/
     char *dominio = (char *) malloc(512*sizeof(char));
-    int numero_puerto;
-    char op;
-    int id;
+    int   numero_puerto;
+    char  op;
+    int   id;
 
     /*Leemos los argumentos y los asignamos a las variables respectivas.*/
     leer_args(argc,argv,dominio,&numero_puerto,&op,&id);
@@ -106,7 +106,6 @@ int main(int argc, char *argv[]) {
     pdu_salida-> tipo_paq = op;
     pdu_salida-> fuente = false;
     pdu_salida-> placa = id;
-
 
     /* Tiempo de Espera de respuesta del Servidor */
     struct timeval tv;

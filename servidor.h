@@ -23,20 +23,20 @@ typedef struct reg_vehiculo{
 void * error(char * mensaje);
 
 /*Registra un mensaje en la bitacora indicada*/
-void * registrar(char *bitacora_entrada, char *bitacora_salida,PDU *pdu_entrante, int respuesta);
+void * registrar(char *bitacora_entrada, char *bitacora_salida,PDU *pdu_entrante);
 
 /*Funcion que verifica y retorna los argumentos de la linea de comandos*/
 void *leer_args(int argc, char *argv[], int *numero_puerto,
                        char *bitacora_entrada, char *bitacora_salida);
+
+/*Busca en Estacionamiento si el vehiculo existe*/
+int buscar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa);
 
 /*Ingresa un vehiculo en el estacionamiento*/
 void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo);
 
 /* Retira un vehiculo del estacionamiento y retorna un puntero al vehiculo en cuestion, NULL si el vehiculo no existe*/
 REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa);
-
-/*Imprime todos los vehiculos en un estacionamiento (SOLO PARA DEBUGGING)*/
-void * imprimir_estacionamiento(REG_VEHICULO *estacionamiento[]);
 
 /* Recibe las horas de entrada y salida y retorna el pago correspondiente del estacionamiento*/
 int calcular_pago(time_t hora_entrada, time_t hora_salida);
