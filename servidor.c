@@ -27,6 +27,18 @@ void * registrar(char *bitacora, PDU *pdu){
 
 }
 
+int buscar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa){
+	int i;
+	int existe = 0;
+	for (i = 0; i < MAX_PUESTOS; i++){
+		if (estacionamiento[i] != NULL && estacionamiento[i]->placa == *placa){
+			existe = 1;
+			break;
+		}
+	}
+	return existe;
+}
+
 /*Ingresa un vehiculo en el estacionamiento*/
 void * ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo){
   int i;
@@ -122,12 +134,13 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 
 
 /* Si hay puestos, procesa el PDU entrante*/
-void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
+int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
                     int * puestos_ocupados, int * numero_tickets,
                     PDU * pdu_salida){
 
 	/*Apuntador al vehiculo a ingresar o sacar del estacionamiento*/
 	REG_VEHICULO * vehiculo;
+	int res = 0;
 
 	/*Este sera el tiempo de entrada o salida del vehiculo segun corresponda*/
 	time_t t = time(NULL);
@@ -137,51 +150,55 @@ void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 		/* Corresponde a una solicitud de entrada*/
 		case 'e':
 
-			/*Como la operacion es de entrada, reservamos la memoria para el nuevo
-			 * vehiculo y le asignamos los valores correspondientes.*/
-			vehiculo = (REG_VEHICULO *) calloc(1,sizeof(REG_VEHICULO));
-			memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
-			memcpy(&vehiculo->ticket,numero_tickets,sizeof(int));
-			memcpy(&vehiculo->tiempo_entrada,&t,sizeof(time_t));
-
-			// se le hace strftime a tiempo_entrada para el PDU
-			struct tm tiempo_entrada;
-			localtime_r(&t,&tiempo_entrada);
-
-			/*Ingresamos el vehiculo al estacionamiento*/
-			ingresar_vehiculo(estacionamiento,vehiculo);
-
-			/* Aqui le enviamos al cliente el mensaje correspondiente*/
-
-			pdu_salida-> tipo_paq = 'e';
-			pdu_salida-> fuente = true;
-			pdu_salida-> placa = pdu_entrante->placa;
-
-			if (*puestos_ocupados < 3) {
-
-			    char fecha[18];
-
-			    time_t t1 = time(NULL);
-			    struct tm *tmp;
-			    tmp = localtime(&t1);
-
-			    strftime(fecha,sizeof(fecha),"%D %T",tmp);
-			    pdu_salida-> puesto = true;
-			    strcpy(pdu_salida->fecha_hora,fecha);
-			    pdu_salida-> codigo = *numero_tickets;
-
+			if (buscar_vehiculo(estacionamiento,&pdu_entrante->placa)) {
+				printf(" Ya el vehiculo de placa %d se encuentra en el estacionamiento\n",pdu_entrante->placa);
+				res = 1;
 			} else {
-			    pdu_salida-> puesto = false;
+					/*Como la operacion es de entrada, reservamos la memoria para el nuevo
+					 * vehiculo y le asignamos los valores correspondientes.*/
+					vehiculo = (REG_VEHICULO *) calloc(1,sizeof(REG_VEHICULO));
+					memcpy(&vehiculo->placa, &pdu_entrante->placa, sizeof(int));
+					memcpy(&vehiculo->ticket,numero_tickets,sizeof(int));
+					memcpy(&vehiculo->tiempo_entrada,&t,sizeof(time_t));
+
+					// se le hace strftime a tiempo_entrada para el PDU
+					struct tm tiempo_entrada;
+					localtime_r(&t,&tiempo_entrada);
+
+					/*Ingresamos el vehiculo al estacionamiento*/
+					ingresar_vehiculo(estacionamiento,vehiculo);
+
+					/* Aqui le enviamos al cliente el mensaje correspondiente*/
+
+					pdu_salida-> tipo_paq = 'e';
+					pdu_salida-> fuente = true;
+					pdu_salida-> placa = pdu_entrante->placa;
+
+					if (*puestos_ocupados < 3) {
+
+					    char fecha[18];
+
+					    time_t t1 = time(NULL);
+					    struct tm *tmp;
+					    tmp = localtime(&t1);
+
+					    strftime(fecha,sizeof(fecha),"%D %T",tmp);
+					    pdu_salida-> puesto = true;
+					    strcpy(pdu_salida->fecha_hora,fecha);
+					    pdu_salida-> codigo = *numero_tickets;
+
+					} else {
+					    pdu_salida-> puesto = false;
+					}
+
+					/*Incrementamos el numero de puestos y el numero de los tickets*/
+					*puestos_ocupados = *puestos_ocupados + 1;
+					*numero_tickets   = *numero_tickets + 1;
+
+					/*Imprimimos el vehiculo solo para verificar*/
+					imprimir_estacionamiento(estacionamiento);
+					printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
 			}
-
-			/*Incrementamos el numero de puestos y el numero de los tickets*/
-			*puestos_ocupados = *puestos_ocupados + 1;
-			*numero_tickets   = *numero_tickets + 1;
-
-			/*Imprimimos el vehiculo solo para verificar*/
-			imprimir_estacionamiento(estacionamiento);
-			printf("Numero de puestos ocupados : %d\n", *puestos_ocupados);
-
 			break;
 		case 's' :
 
@@ -197,10 +214,10 @@ void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 			if (vehiculo == NULL) {
 				printf("El vehiculo con placa %d no existe o hubo un error.\n", pdu_entrante->placa);
 				/* Aqui le enviamos al cliente el mensaje correspondiente*/
-
+				res = 2;
 			} else {
 
-				//Se calcula el tipo de pago.
+					//Se calcula el tipo de pago.
 					int monto_a_pagar = calcular_pago(vehiculo->tiempo_entrada,t);
 
 					/* Aqui le enviamos al cliente el mensaje correspondiente*/
@@ -233,6 +250,8 @@ void * procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 
 			break;
 		}
+
+		return res;
 }
 
 void * salida(PDU * pdu_salida){
@@ -299,7 +318,8 @@ void main(int argc, char *argv[]) {
 	PDU *pdu_informacion;
 	pdu_informacion = (PDU *) calloc(1,sizeof(PDU));
 
-	/* PDU Informacion se envia solo cuando no hay puestos o cuando ocurre un error */
+	/* pdu_informacion se envia solo cuando no hay puestos o cuando ocurre un error */
+	/* En cualquier otro caso, se envia pdu_salida*/
 	pdu_informacion -> tipo_paq = 'o';
 	pdu_informacion -> fuente = true;
 	pdu_informacion -> puesto = false;
@@ -348,26 +368,35 @@ void main(int argc, char *argv[]) {
 			PDU * pdu_respuesta;
 
 			if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
+				pdu_informacion->codigo = 0;
 				pdu_respuesta = pdu_informacion;
+
 			} else {
-				procesar_pdu(pdu_entrante,estacionamiento,
-										 &puestos_ocupados, &numero_tickets, pdu_salida);
-				pdu_respuesta = pdu_salida;
+
+				int resultado = procesar_pdu(pdu_entrante,estacionamiento,
+										 								 &puestos_ocupados, &numero_tickets, pdu_salida);
+
+				switch (resultado) {
+					case 0: // Operacion procesada satisfactoriamente
+						pdu_respuesta = pdu_salida;
+						break;
+					case 1: // El vehiculo ya existia en el estacionamiento      (para la entrada)
+					  pdu_informacion->codigo = 1;
+						pdu_respuesta = pdu_informacion;
+						break;
+					case 2: // El Vehiculo no se encuentra en el estacionamiento (para la salida)
+						pdu_informacion->codigo = 2;
+						pdu_respuesta = pdu_informacion;
+						break;
+				}
 			}
-
-//			salida(pdu_salida);
-
-			int m;
-			m = 50;
-			salida1(m);
 
 			// Se envia la respusta del servidor
 			if (numero_bytes = sendto(socketfd,pdu_respuesta,sizeof(PDU),0,
 									(struct sockaddr*) &datos_cliente,
 									sizeof(struct sockaddr)) == -1){
-				error("Error enviando datos al cliente.");
+				perror("Error enviando datos al cliente.");
 			}
-
 		}
 
 	}

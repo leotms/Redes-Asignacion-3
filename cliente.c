@@ -163,13 +163,30 @@ int main(int argc, char *argv[]) {
 
    case 'o':
 
-      printf("--------------------------------------");
-      printf("\n|  *** ESTACIONAMIENTO LLENO ***   ");
-      printf("\n|*** NO HAY PUESTOS DISPONIBLES ***\n");
-      printf("|    DISCULPE LOS INCONVENIENTES    \n");
-      printf("--------------------------------------\n");
+      switch (pdu_entrante->codigo) {
+        case 0: // estacionamiento sin puestos
+          printf("--------------------------------------");
+          printf("\n|  *** ESTACIONAMIENTO LLENO ***   ");
+          printf("\n|*** NO HAY PUESTOS DISPONIBLES ***\n");
+          printf("|    DISCULPE LOS INCONVENIENTES    \n");
+          printf("--------------------------------------\n");
+          break;
+        case 1: // vehiculo exitente
+          printf("------------------------------------------");
+          printf("\n|  *** VEHICULO YA EN EL ESTACIONAMIENTO ***   ");
+          printf("\n|          CONTACTE AL ADMINISTRADOR \n");
+          printf("|         DISCULPE LOS INCONVENIENTES    \n");
+          printf("------------------------------------------\n");
+          break;
+        case 2: // vehiculo no esta en el estacionamiento
+          printf("------------------------------------------");
+          printf("\n|  *** VEHICULO NO ESTA EN EL ESTACIONAMIENTO ***   ");
+          printf("\n|          CONTACTE AL ADMINISTRADOR \n");
+          printf("|         DISCULPE LOS INCONVENIENTES    \n");
+          printf("------------------------------------------\n");
+          break;
+      }
       break;
-
    case 'e':
 
       printf("--------------------------------------\n");
