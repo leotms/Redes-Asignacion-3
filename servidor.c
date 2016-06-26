@@ -164,7 +164,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
         pdu_salida-> placa = pdu_entrante->placa;
 
         if (*puestos_ocupados < 3) {
-                
+
             char fecha[18];
 
             time_t t1 = time(NULL);
@@ -177,7 +177,7 @@ void * procesar_pdu(PDU* pdu_entrante, REG_VEHICULO * estacionamiento[], int * p
             pdu_salida-> codigo = 1;
 
         } else {
-            pdu_salida-> puesto = false;         
+            pdu_salida-> puesto = false;
         }
 
 
@@ -284,10 +284,19 @@ void main(int argc, char *argv[]) {
 	/* Contendra el PDU entrante/saliente */
 
 	PDU *pdu_entrante;
-	pdu_entrante = (PDU *)malloc(sizeof(PDU));
+	pdu_entrante =    (PDU *) calloc(1,sizeof(PDU));
 
 	PDU *pdu_salida;
-	pdu_salida = (PDU *)malloc(sizeof(PDU));
+	pdu_salida =      (PDU *) calloc(1,sizeof(PDU));
+
+	PDU *pdu_informacion;
+	pdu_informacion = (PDU *) calloc(1,sizeof(PDU));
+
+	/* PDU Informacion se envia solo cuando no hay puestos o cuando ocurre un error */
+	pdu_informacion -> tipo_paq = 'o';
+	pdu_informacion -> fuente = true;
+	pdu_informacion -> puesto = false;
+
 
 	/*creamos el socket*/
 	printf("Creando el socket.\n");
@@ -296,6 +305,7 @@ void main(int argc, char *argv[]) {
 	}
 
 	memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
+	memset((char *) &datos_cliente, 0, sizeof(datos_cliente));
 
 	/* Asignamos los datos del servidor*/
 	datos_servidor.sin_family = AF_INET;
@@ -321,14 +331,17 @@ void main(int argc, char *argv[]) {
 
 		} else {
 
-			int size_1 = sizeof(pdu_salida);
-			int size_2 = sizeof(PDU);
+			// int size_1 = sizeof(pdu_salida);
+			// int size_2 = sizeof(PDU);
 
 			printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 			printf("Longitud del PDU en bytes %d\n",numero_bytes);
 			printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
 			printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
 			printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
+
+
+
 
 			procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
 
@@ -345,55 +358,6 @@ void main(int argc, char *argv[]) {
 			}
 
 		}
-
-
-		/* Imprimimos en pantalla el mensaje recibido.*/
-		// printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
-		// printf("Longitud del PDU en bytes %d\n",numero_bytes);
-		// printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
-		// printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
-		// printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
-
-		//registrar(bitacora_entrada,pdu_entrante);
-		//
-		// procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
-		//
-		// salida(pdu_salida);
-		//
-		// int m;
-		// m = 50;
-		// salida1(m);
-
-/* COMENTAR ESTE BLOQUE CUANDO UTILICES CUALQUIERA DE LAS FUNCIONES ANTERIORES */
-		//
-		// pdu_salida-> fuente = true;
-		// pdu_salida-> placa = pdu_entrante->placa;
-		// char fecha[18];
-		//
-		// time_t t1 = time(NULL);
-		// struct tm *tmp;
-		// tmp = localtime(&t1);
-		//
-		// strftime(fecha,sizeof(fecha),"%D %T",tmp);
-		// pdu_salida-> puesto = true;
-		// strcpy(pdu_salida->fecha_hora,fecha);
-		// pdu_salida-> codigo = 1;
-
-/* DESCOMENTAR EL BLQUE DE ARRIBA SI QUIERES PASAR EL PDU DIRECTO */
-
-		// printf("\n *******PDU SALIDA***********\n");
-		// printf("Orígen del paquete: %d\n", pdu_salida-> fuente);
-		// printf("Puestos disponibles: %d\n", pdu_salida-> puesto);
-		// printf("Placa del vehiculo: %d\n", pdu_salida-> placa);
-		// printf("Hora de Entrada/Salida: %s\n", pdu_salida->fecha_hora);
-		// printf("Ticket n°: %d\n", pdu_salida-> codigo);
-
-
-		// if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
-		// 						(struct sockaddr*) &datos_cliente,
-		// 						sizeof(struct sockaddr)) == -1){
-		// 	error("Error enviando datos al cliente.");
-		// }
 
 	}
 

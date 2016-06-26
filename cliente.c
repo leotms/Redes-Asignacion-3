@@ -95,11 +95,11 @@ int main(int argc, char *argv[]) {
 
     /* PDU de entrada */
     PDU *pdu_entrante;
-    pdu_entrante = (PDU *)malloc(sizeof(PDU));
+    pdu_entrante = (PDU *) calloc(1,sizeof(PDU));
 
     /* PDU de salida */
     PDU *pdu_salida;
-    pdu_salida = (PDU *)malloc(sizeof(PDU));
+    pdu_salida =   (PDU *) calloc(1,sizeof(PDU));
 
 
     /* Datos a enviar */
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
       	if (numero_bytes_recibidos == -1){
             printf("Sin respuesta del servidor. Reenviando...\n");
         }
-        
+
 
         cont++;
     }
@@ -173,8 +173,8 @@ int main(int argc, char *argv[]) {
             printf("\n****No hay puestos disponibles\n");
         }
 
-      break; 
-    
+      break;
+
    case 's':
             printf("\n*** Hay puestos disponibles ***\n\n");
             printf("--------------------------------------\n");
@@ -183,11 +183,11 @@ int main(int argc, char *argv[]) {
             printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
             printf("| *** Monto a Cancelar: %d ***\n",pdu_entrante->monto);
             printf("--------------------------------------\n");
-      break; 
-  
+      break;
+
    default :
-        printf("Error en el mensaje del Servidor\n"); 
-   
+        printf("Error en el mensaje del Servidor\n");
+
     }
 
 
