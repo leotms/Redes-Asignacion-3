@@ -161,32 +161,45 @@ int main(int argc, char *argv[]) {
 
    switch(pdu_entrante->tipo_paq) {
 
+   case 'o':
+
+      printf("--------------------------------------");
+      printf("\n|  *** ESTACIONAMIENTO LLENO ***   ");
+      printf("\n|*** NO HAY PUESTOS DISPONIBLES ***\n");
+      printf("|    DISCULPE LOS INCONVENIENTES    \n");
+      printf("--------------------------------------\n");
+      break;
+
    case 'e':
-        if (pdu_entrante->puesto < 3){
-            printf("\n*** Hay puestos disponibles ***\n\n");
-            printf("--------------------------------------\n");
-            printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
-            printf("| Hora de Entrada: %s \n", pdu_entrante->fecha_hora);
-            printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
-            printf("--------------------------------------\n");
-        } else {
-            printf("\n****No hay puestos disponibles\n");
-        }
+
+      printf("--------------------------------------\n");
+      printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+      printf("| Hora de Entrada: %s \n", pdu_entrante->fecha_hora);
+      printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
+      printf("--------------------------------------\n");
+
+      if (pdu_entrante->puesto < 3){
+        printf("\n*** HAY PUESTOS DISPONIBLES ***\n\n");
+      } else {
+        printf("\n*** NO HAY PUESTOS DISPONIBLES ***\n\n");
+      }
 
       break;
 
    case 's':
-            printf("\n*** Hay puestos disponibles ***\n\n");
-            printf("--------------------------------------\n");
-            printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
-            printf("| Hora de Salida: %s \n", pdu_entrante->fecha_hora);
-            printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
-            printf("| *** Monto a Cancelar: %d ***\n",pdu_entrante->monto);
-            printf("--------------------------------------\n");
+
+      printf("--------------------------------------\n");
+      printf("|          Ticket n°: %d              \n", pdu_entrante-> codigo);
+      printf("| Hora de Salida: %s \n", pdu_entrante->fecha_hora);
+      printf("|    Placa del vehiculo: %d        \n", pdu_entrante-> placa);
+      printf("| *** Monto a Cancelar: %d ***\n",pdu_entrante->monto);
+      printf("--------------------------------------\n");
+      printf("\n*** HAY PUESTOS DISPONIBLES ***\n\n");
       break;
 
    default :
-        printf("Error en el mensaje del Servidor\n");
+
+      printf("Error en el mensaje del Servidor\n");
 
     }
 

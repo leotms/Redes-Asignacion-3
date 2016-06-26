@@ -331,19 +331,21 @@ void main(int argc, char *argv[]) {
 
 		} else {
 
-			// int size_1 = sizeof(pdu_salida);
-			// int size_2 = sizeof(PDU);
-
 			printf("\nMensaje recibido de %s\n",inet_ntoa(datos_cliente.sin_addr));
 			printf("Longitud del PDU en bytes %d\n",numero_bytes);
 			printf("\nTipo de paquete: %c\n", pdu_entrante-> tipo_paq);
 			printf("Orígen del paquete: %d\n", pdu_entrante-> fuente);
 			printf("Placa del vehiculo: %d\n", pdu_entrante-> placa);
 
+			/* Es un apuntador al PDU que efectivamente se enviara*/
+			PDU * pdu_respuesta;
 
-
-
-			procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+			if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
+				pdu_respuesta = pdu_informacion;
+			} else {
+				procesar_pdu(pdu_entrante,estacionamiento,&puestos_ocupados,pdu_salida);
+				pdu_respuesta = pdu_salida;
+			}
 
 //			salida(pdu_salida);
 
@@ -351,7 +353,8 @@ void main(int argc, char *argv[]) {
 			m = 50;
 			salida1(m);
 
-			if (numero_bytes = sendto(socketfd,pdu_salida,sizeof(PDU),0,
+			// Se envia la respusta del servidor
+			if (numero_bytes = sendto(socketfd,pdu_respuesta,sizeof(PDU),0,
 									(struct sockaddr*) &datos_cliente,
 									sizeof(struct sockaddr)) == -1){
 				error("Error enviando datos al cliente.");
