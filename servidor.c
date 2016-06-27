@@ -359,8 +359,7 @@ void main(int argc, char *argv[]) {
 		if ((numero_bytes = recvfrom(socketfd, pdu_entrante, sizeof(PDU), 0,
 									(struct sockaddr*) &datos_cliente,
 									(socklen_t *) &tam_direccion)) == -1){
-			error("Error recibiendo datos del cliente.");
-
+			print("Error recibiendo datos del cliente.");
 		} else {
 
 			printf("\nSolicitud de cliente recibida desde la IP %s. ",inet_ntoa(datos_cliente.sin_addr));
