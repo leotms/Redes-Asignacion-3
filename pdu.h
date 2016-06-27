@@ -31,11 +31,11 @@
 
 typedef struct pdu_IO{
 	char tipo_paq;
+	int  codigo;
 	bool fuente;
 	bool puesto;
 	int  placa;
 	char fecha_hora[18];
 	int  n_ticket;
 	int  monto;
-	int  codigo;
 } PDU;
