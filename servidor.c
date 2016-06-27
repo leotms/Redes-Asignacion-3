@@ -280,19 +280,39 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 		return res;
 }
 
+void * calc_checksum(PDU *pdu){
+  
+  int chk;
+  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
+        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
+
+  pdu->chk_sum = chk; 
+
+}
+
+void * comp_checksum(PDU *pdu){
+
+  int chk;
+  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora
+        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  if (chk != 0){
+      printf("\n*** Error en el paquete de llegada ***\n\n");
+  }
+}
+
 /* Programa Principal*/
 void main(int argc, char *argv[]) {
 
 	/* Inicializamos el estacionamiento con punteros a NULL.*/
 	REG_VEHICULO * estacionamiento[MAX_PUESTOS] = {NULL};
 
-	/*Numero de pustos ocupados en el estacionamiento*/
+	/* Numero de pustos ocupados en el estacionamiento*/
 	int puestos_ocupados = 0;
 
 	/* Numero de los tickets */
 	int numero_tickets   = 0;
 
-	/*Almacentaran los argumentos recibidos de la linea de comandos*/
+	/* Almacentaran los argumentos recibidos de la linea de comandos*/
 	int numero_puerto;
 	char *bitacora_entrada = (char *) malloc(512*sizeof(char));
 	char *bitacora_salida  = (char *) malloc(512*sizeof(char));
@@ -327,7 +347,7 @@ void main(int argc, char *argv[]) {
 	pdu_informacion -> puesto = false;
 
 
-	/*creamos el socket*/
+	/* Creamos el socket*/
 	printf("Iniciando Computador Central del SEM.\n");
 	if ((socketfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		error("No se pudo crear el Socket para la conexion del SEM.");
@@ -336,7 +356,7 @@ void main(int argc, char *argv[]) {
 	/* Inicializamos los buffers de las direcciones del cliente y del servidor*/
 	memset((void *) &datos_servidor, 0, sizeof(datos_servidor));
 	memset((void *) &datos_cliente, 0, sizeof(datos_cliente));
-  tam_direccion = sizeof(datos_cliente);
+  	tam_direccion = sizeof(datos_cliente);
 
 	/* Asignamos los datos del servidor*/
 	datos_servidor.sin_family = AF_INET;
@@ -365,6 +385,10 @@ void main(int argc, char *argv[]) {
 			printf("\nSolicitud de cliente recibida desde la IP %s. ",inet_ntoa(datos_cliente.sin_addr));
 			printf("Atendiendo solicitud... ");
 
+
+		    /* Cálculo de la suma de comprobación del mensaje */ 
+		    comp_checksum(pdu_entrante);
+
 			/* Es un apuntador al PDU que efectivamente se enviara*/
 			PDU * pdu_respuesta;
 
@@ -392,6 +416,9 @@ void main(int argc, char *argv[]) {
 				}
 			}
 
+  			 /* Comprobación del checksum del mensaje del destino */
+   			calc_checksum(pdu_respuesta);
+			
 			printf("solicitud atendida. \n");
 			printf("Enviando respuesta al cliente... ");
 

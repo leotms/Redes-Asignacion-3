@@ -42,6 +42,27 @@ void * leer_args(int argc, char *argv[], char *dominio,
     }
 }
 
+void * calc_checksum(PDU *pdu){
+  
+  int chk;
+  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
+        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
+
+  pdu->chk_sum = chk; 
+
+}
+
+void * comp_checksum(PDU *pdu){
+
+  int chk;
+  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
+        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  if (chk != 0){
+      printf("\n*** Error en la transmición del paquete de llegada ***\n");
+      exit(0);
+  }
+}
+
 /* Programa Principal*/
 int main(int argc, char *argv[]) {
 
@@ -103,6 +124,9 @@ int main(int argc, char *argv[]) {
     pdu_salida-> fuente = false;
     pdu_salida-> placa = id;
 
+    /* Comprobación del checksum del mensaje del destino */
+   	calc_checksum(pdu_salida);
+
     /* Tiempo de Espera de respuesta del Servidor */
     struct timeval tv;
     tv.tv_sec = 5;
@@ -151,7 +175,9 @@ int main(int argc, char *argv[]) {
 
         cont++;
     }
-
+    
+   /* Comprobación del checksum del mensaje del destino */
+   comp_checksum(pdu_entrante);
    switch(pdu_entrante->tipo_paq) {
 
    case 'o':
