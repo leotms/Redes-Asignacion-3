@@ -1,20 +1,17 @@
 /* Aplicacion Cliente para el Sistema de Estacionamiento Moriah (SEM).
-* Sahid Reyes       10-10603
-* Leonardo Martinez 11-10576
-*
-* Ultima Modificacion 22/06/16
+* Ultima Modificacion 26/06/16
+* @author Sahid Reyes 	  	10-10603
+* @author Leonardo Martinez 11-10576
 */
 
 /* Archivo de cabecera*/
 #include "cliente.h"
 
-/* Imprime en pantalla un error y finaliza la ejecucion*/
 void * error(char * mensaje){
     printf("%s\n", mensaje);
     exit(-1);
 }
 
-/* Funcion que verifica y devuelve los argumentos de entrada*/
 void * leer_args(int argc, char *argv[], char *dominio,
                 int *numero_puerto, char *op, int *id){
     if (argc < 9) {
@@ -44,8 +41,6 @@ void * leer_args(int argc, char *argv[], char *dominio,
         }
     }
 }
-
-
 
 /* Programa Principal*/
 int main(int argc, char *argv[]) {

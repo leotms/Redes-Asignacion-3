@@ -1,20 +1,17 @@
 /* Aplicacion Servidor para el Sistema de Estacionamiento Moriah (SEM).
-* Sahid Reyes 		10-10603
-* Leonardo Martinez 11-10576
-*
-* Ultima Modificacion 22/06/16
+* Ultima Modificacion 26/06/16
+* @author Sahid Reyes 	  	10-10603
+* @author Leonardo Martinez 11-10576
 */
 
 /* Archivo de cabecera*/
 #include "servidor.h"
 
-/* Imprime en pantalla un error y finaliza la ejecucion*/
 void * error(char * mensaje){
 	printf("%s\n", mensaje);
 	exit(-1);
 }
 
-/*Registra un mensaje en la bitacora indicada*/
 void * registrar(char *bitacora_entrada, char *bitacora_salida ,PDU *pdu_entrante){
 
 	FILE *archivo_in;
@@ -102,7 +99,6 @@ int buscar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa){
 	return existe;
 }
 
-/*Ingresa un vehiculo en el estacionamiento*/
 void * ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehiculo){
   int i;
   for (i = 0; i < MAX_PUESTOS; i++){
@@ -113,7 +109,6 @@ void * ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehicu
   }
 }
 
-/* Retira un vehiculo del estacionamiento y retorna un puntero al vehiculo en cuestion NULL si el vehiculo no existe*/
 REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
   int i;
   REG_VEHICULO * vehiculo = NULL;
@@ -127,7 +122,6 @@ REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa) {
   return vehiculo;
 }
 
-/* Recibe las horas de entrada y salida y retorna el pago correspondiente del estacionamiento*/
 int calcular_pago(time_t hora_entrada, time_t hora_salida){
 	int pago;
 	double tiempo_total = difftime(hora_salida,hora_entrada);
@@ -147,7 +141,6 @@ int calcular_pago(time_t hora_entrada, time_t hora_salida){
 
 }
 
-/* Funcion que verifica y devuelve los argumentos de entrada*/
 void * leer_args(int argc, char *argv[], int *numero_puerto,
                char *bitacora_entrada, char *bitacora_entrante){
 	if (argc < 7) {
@@ -174,8 +167,6 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 	}
 }
 
-
-/* Si hay puestos, procesa el PDU entrante*/
 int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
                     int * puestos_ocupados, int * numero_tickets,
                     PDU * pdu_salida){
@@ -359,7 +350,7 @@ void main(int argc, char *argv[]) {
 		error("Error uniendo el Socket con la direccion IP y Puerto para el CC de SEM.");
 	}
 
-	printf("Computador Central del SEM cctivo y escuchando peticiones en el puerto %d\n",numero_puerto);
+	printf("Computador Central del SEM activo y escuchando peticiones en el puerto %d\n",numero_puerto);
 
 	while(1){
 
