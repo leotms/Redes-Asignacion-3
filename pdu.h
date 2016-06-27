@@ -50,6 +50,6 @@ void * calc_checksum(PDU *pdu);
 
 /* Funcion que comprueba la llegada de un PDU por medio de la suma de comprobación.
 * @param pdu será el pdu a comprobar mediante su checksum
-* @return void en caso de ser fallido el checksum, éste imprimirá mensaje de error.
+* @return int != 0 en caso de ser fallido el checksum, éste imprimirá mensaje de error.
 */
-void * comp_checksum(PDU *pdu);
+int comp_checksum(PDU *pdu);

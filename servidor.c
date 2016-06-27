@@ -290,7 +290,7 @@ void * calc_checksum(PDU *pdu){
 
 }
 
-void * comp_checksum(PDU *pdu){
+int comp_checksum(PDU *pdu){
 
   int chk;
   chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora
@@ -298,6 +298,7 @@ void * comp_checksum(PDU *pdu){
   if (chk != 0){
       printf("\n*** Error en el paquete de llegada ***\n\n");
   }
+  return chk;
 }
 
 /* Programa Principal*/
@@ -418,7 +419,6 @@ void main(int argc, char *argv[]) {
 
   			 /* Comprobación del checksum del mensaje del destino */
    			calc_checksum(pdu_respuesta);
-			
 			printf("solicitud atendida. \n");
 			printf("Enviando respuesta al cliente... ");
 

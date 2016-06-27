@@ -52,15 +52,15 @@ void * calc_checksum(PDU *pdu){
 
 }
 
-void * comp_checksum(PDU *pdu){
+int comp_checksum(PDU *pdu){
 
   int chk;
   chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
         ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
   if (chk != 0){
       printf("\n*** Error en la transmición del paquete de llegada ***\n");
-      exit(0);
   }
+  return chk;
 }
 
 /* Programa Principal*/
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
     /* Mientras no exista respuesta del servidor, intentamos hasta el maximo de intentos*/
 
     while ((numero_bytes_recibidos = recvfrom(sockfd, pdu_entrante, sizeof(PDU), 0,
-        (struct sockaddr*) &datos_servidor, (socklen_t *) &tam_direccion)) == -1){
+        (struct sockaddr*) &datos_servidor, (socklen_t *) &tam_direccion)) == -1 || comp_checksum(pdu_entrante)){
 
         if (cont == 2) {
           printf("Tiempo maximo de espera para respuesta terminado.\n");
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 
         memset(pdu_entrante,'\0', sizeof(PDU));
 
-      	if (numero_bytes_recibidos == -1){
+      	if ((numero_bytes_recibidos == -1)) {
             printf("Sin respuesta del servidor. Reenviando...\n");
         }
 
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
     }
     
    /* Comprobación del checksum del mensaje del destino */
-   comp_checksum(pdu_entrante);
+
    switch(pdu_entrante->tipo_paq) {
 
    case 'o':
