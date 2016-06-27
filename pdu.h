@@ -19,18 +19,20 @@
 
 /* Estructura para el PDU del protocolo SEM
 *  Permite manejar de manera estructurada los servicios del Sistema SEM.
+* peticion	 : numero de identificación de la petición emitida.
 * tipo_paq   : identifica el tipo de mensaje que contiene el paquete.
 * fuente     : identifica si el paquete viene del servidor o de un cliente.
-* puesto	   : indica si quedan puestos en el estacionamiento.
-* placa		   : placa del vehiclo que quiere ingresar/salir
+* puesto	 : indica si quedan puestos en el estacionamiento.
+* placa		 : placa del vehiclo que quiere ingresar/salir
 * fecha_hora : fecha y hora en string de la operacion de entrada/salida
 * n_ticket   : numero de ticket asignado
-* monto		   : monto a pagar
-* codigo	   : codigo utilizado en caso de ser un mensaje de informacion
-* chk_sum	   : Suma de comprobación de los campos del PDU.
+* monto		 : monto a pagar
+* codigo	 : codigo utilizado en caso de ser un mensaje de informacion
+* chk_sum	 : Suma de comprobación de los campos del PDU.
 */
 
 typedef struct pdu_IO{
+	int  peticion;
 	char tipo_paq;
 	int  codigo;
 	bool fuente;

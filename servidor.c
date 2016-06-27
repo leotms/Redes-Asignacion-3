@@ -283,8 +283,8 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 void * calc_checksum(PDU *pdu){
   
   int chk;
-  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
-        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
 
   pdu->chk_sum = chk; 
 
@@ -293,10 +293,10 @@ void * calc_checksum(PDU *pdu){
 int comp_checksum(PDU *pdu){
 
   int chk;
-  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora
-        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
   if (chk != 0){
-      printf("\n*** Error en el paquete de llegada ***\n\n");
+      printf("\n*** Error en la transmición del paquete de llegada ***\n");
   }
   return chk;
 }

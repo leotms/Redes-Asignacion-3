@@ -45,8 +45,8 @@ void * leer_args(int argc, char *argv[], char *dominio,
 void * calc_checksum(PDU *pdu){
   
   int chk;
-  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
-        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
 
   pdu->chk_sum = chk; 
 
@@ -55,8 +55,8 @@ void * calc_checksum(PDU *pdu){
 int comp_checksum(PDU *pdu){
 
   int chk;
-  chk = pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa ^ *pdu->fecha_hora 
-        ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
   if (chk != 0){
       printf("\n*** Error en la transmición del paquete de llegada ***\n");
   }
