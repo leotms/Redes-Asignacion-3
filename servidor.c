@@ -167,6 +167,40 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 	}
 }
 
+int buscar_en_cache(PDU * cache_peticiones[], int peticion, PDU * pdu_respuesta){
+	int i,j;
+	int existe = 0;
+	for (j=0; j < MAX_CACHE; j++){
+		if (cache_peticiones[j] != NULL){ printf(" CACHE %d\n", cache_peticiones[j]->peticion);}
+	}
+	for (i = 0; i < MAX_CACHE; i++){
+		if (cache_peticiones[i] != NULL && cache_peticiones[i]->peticion == peticion){
+			existe = 1;
+			printf("AQUI TA!");
+			pdu_respuesta = cache_peticiones[i];
+			break;
+		}
+	}
+	return existe;
+}
+
+void * guardar_en_cache(PDU * cache_peticiones[], int *posicion_cache, PDU * pdu_respuesta){
+	PDU *nuevo_pdu = (PDU *) calloc(1,sizeof(PDU));
+	memcpy(nuevo_pdu, pdu_respuesta, sizeof(PDU));
+	if  (cache_peticiones[*posicion_cache] != NULL){
+		printf("I WANT TO BREAK FREEEEEE\n");
+		free(cache_peticiones[*posicion_cache]);
+		cache_peticiones[*posicion_cache] = nuevo_pdu;
+	} else {
+		cache_peticiones[*posicion_cache] = nuevo_pdu;
+	}
+
+	*posicion_cache = *posicion_cache + 1;
+	if (*posicion_cache == MAX_CACHE) {
+		*posicion_cache = 0;
+	}
+}
+
 int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
                     int * puestos_ocupados, int * numero_tickets,
                     PDU * pdu_salida){
@@ -281,20 +315,20 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 }
 
 void * calc_checksum(PDU *pdu){
-  
+
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa
         ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
 
-  pdu->checksum = chk; 
+  pdu->checksum = chk;
 
 }
 
 int comp_checksum(PDU *pdu){
 
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
-        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->checksum; 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->checksum;
   if (chk != 0){
       printf("\n*** Error en la transmición del paquete de llegada ***\n");
   }
@@ -306,6 +340,10 @@ void main(int argc, char *argv[]) {
 
 	/* Inicializamos el estacionamiento con punteros a NULL.*/
 	REG_VEHICULO * estacionamiento[MAX_PUESTOS] = {NULL};
+
+	/* Inicializamos el cache de las peticiones atendidas*/
+	PDU * cache_peticiones[MAX_PUESTOS] = {NULL};
+	int posicion_cache = 0;
 
 	/* Numero de pustos ocupados en el estacionamiento*/
 	int puestos_ocupados = 0;
@@ -387,15 +425,21 @@ void main(int argc, char *argv[]) {
 			printf("Atendiendo solicitud... ");
 
 
-		    /* Cálculo de la suma de comprobación del mensaje */ 
-		    comp_checksum(pdu_entrante);
+		  /* Cálculo de la suma de comprobación del mensaje */
+		  comp_checksum(pdu_entrante);
 
 			/* Es un apuntador al PDU que efectivamente se enviara*/
 			PDU * pdu_respuesta;
 
-			if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
+			// perimero buscamos si la solicitud corresponde a una peticion ya atendida.
+			if (buscar_en_cache(cache_peticiones, pdu_entrante->peticion, pdu_respuesta)) {
+				printf("Solicitud ya atendida, reenviando respuesta anterior \n");
+				printf("Peticion numero: %d\n", pdu_entrante->peticion);
+			// si una solicitud es de entrada y no hay puestos, se envia pdu_informacion
+			} else if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
 				pdu_informacion->codigo = 0;
 				pdu_respuesta = pdu_informacion;
+				guardar_en_cache(cache_peticiones,&posicion_cache,pdu_respuesta);
 
 			} else {
 
@@ -415,10 +459,11 @@ void main(int argc, char *argv[]) {
 						pdu_respuesta = pdu_informacion;
 						break;
 				}
+				guardar_en_cache(cache_peticiones,&posicion_cache,pdu_respuesta);
 			}
 
   			 /* Comprobación del checksum del mensaje del destino */
-   			calc_checksum(pdu_respuesta);
+   		calc_checksum(pdu_respuesta);
 			printf("solicitud atendida. \n");
 			printf("Enviando respuesta al cliente... ");
 
@@ -432,6 +477,7 @@ void main(int argc, char *argv[]) {
 			}
 			// Registramos la operacion en la bitacora
 			registrar(bitacora_entrada,bitacora_salida,pdu_respuesta);
+			//registramos el pdu en el cache_peticiones
 		}
 
 	}

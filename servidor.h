@@ -9,6 +9,7 @@
 
 /* Constantes */
 #define MAX_PUESTOS 200
+#define MAX_CACHE   20
 
 /*Estructura para el registro de vehiculos.
 * placa          : identificador univoco del vehiculo
