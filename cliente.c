@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
     }
 
     memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
+    tam_direccion = sizeof(datos_servidor);
 
     /* Asignamos los datos del servidor */
     datos_servidor.sin_family = AF_INET;

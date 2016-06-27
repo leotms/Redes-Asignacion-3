@@ -342,8 +342,10 @@ void main(int argc, char *argv[]) {
 		error("No se pudo crear el Socket para la conexion del SEM.");
 	}
 
-	memset((char *) &datos_servidor, 0, sizeof(datos_servidor));
-	memset((char *) &datos_cliente, 0, sizeof(datos_cliente));
+	/* Inicializamos los buffers de las direcciones del cliente y del servidor*/
+	memset((void *) &datos_servidor, 0, sizeof(datos_servidor));
+	memset((void *) &datos_cliente, 0, sizeof(datos_cliente));
+  tam_direccion = sizeof(datos_cliente);
 
 	/* Asignamos los datos del servidor*/
 	datos_servidor.sin_family = AF_INET;
@@ -400,11 +402,13 @@ void main(int argc, char *argv[]) {
 				}
 			}
 
-			printf("solicitud atendida. \nEnviando respuesta al cliente... ");
+			printf("solicitud atendida. \n");
+			printf("Enviando respuesta al cliente... ");
+
 			// Se envia la respuesta del servidor
 			if (numero_bytes = sendto(socketfd,pdu_respuesta,sizeof(PDU),0,
 									(struct sockaddr*) &datos_cliente,
-									sizeof(struct sockaddr)) == -1){
+									(socklen_t) tam_direccion) == -1){
 				perror("No se pudo enviar respuesta de solicitud al cliente. Error: ");
 			} else {
 				printf("respuesta enviada satisfactoriamente.\n");
