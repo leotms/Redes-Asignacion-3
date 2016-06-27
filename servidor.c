@@ -204,7 +204,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 					/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 					pdu_salida-> tipo_paq = 'e';
-					pdu_salida-> fuente = true;
+					pdu_salida-> origen = true;
 					pdu_salida-> placa = pdu_entrante->placa;
 					pdu_salida-> n_ticket = *numero_tickets;
 
@@ -252,7 +252,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 					/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
 					pdu_salida-> tipo_paq = 's';
-					pdu_salida-> fuente   = true;
+					pdu_salida-> origen   = true;
 					pdu_salida-> placa    = pdu_entrante->placa;
 
 					char fecha[18];
@@ -283,18 +283,18 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 void * calc_checksum(PDU *pdu){
   
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
         ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
 
-  pdu->chk_sum = chk; 
+  pdu->checksum = chk; 
 
 }
 
 int comp_checksum(PDU *pdu){
 
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
-        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->checksum; 
   if (chk != 0){
       printf("\n*** Error en la transmición del paquete de llegada ***\n");
   }
@@ -344,7 +344,7 @@ void main(int argc, char *argv[]) {
 	/* pdu_informacion se envia solo cuando no hay puestos o cuando ocurre un error */
 	/* En cualquier otro caso, se envia pdu_salida*/
 	pdu_informacion -> tipo_paq = 'o';
-	pdu_informacion -> fuente = true;
+	pdu_informacion -> origen = true;
 	pdu_informacion -> puesto = false;
 
 

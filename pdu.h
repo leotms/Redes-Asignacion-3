@@ -21,7 +21,7 @@
 *  Permite manejar de manera estructurada los servicios del Sistema SEM.
 * peticion	 : numero de identificación de la petición emitida.
 * tipo_paq   : identifica el tipo de mensaje que contiene el paquete.
-* fuente     : identifica si el paquete viene del servidor o de un cliente.
+* origen     : identifica si el paquete viene del servidor o de un cliente.
 * puesto	 : indica si quedan puestos en el estacionamiento.
 * placa		 : placa del vehiclo que quiere ingresar/salir
 * fecha_hora : fecha y hora en string de la operacion de entrada/salida
@@ -35,13 +35,13 @@ typedef struct pdu_IO{
 	int  peticion;
 	char tipo_paq;
 	int  codigo;
-	bool fuente;
+	bool origen;
 	bool puesto;
 	int  placa;
 	char fecha_hora[18];
 	int  n_ticket;
 	int  monto;
-	int  chk_sum;
+	int  checksum;
 } PDU;
 
 /* Funcion que calcula la suma de comprobación del PDU

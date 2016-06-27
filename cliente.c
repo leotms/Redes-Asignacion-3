@@ -45,18 +45,18 @@ void * leer_args(int argc, char *argv[], char *dominio,
 void * calc_checksum(PDU *pdu){
   
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
         ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket;
 
-  pdu->chk_sum = chk; 
+  pdu->checksum = chk; 
 
 }
 
 int comp_checksum(PDU *pdu){
 
   int chk;
-  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->fuente ^ pdu->puesto ^ pdu->placa 
-        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->chk_sum; 
+  chk = pdu->peticion ^ pdu->tipo_paq ^ pdu->origen ^ pdu->puesto ^ pdu->placa 
+        ^ *pdu->fecha_hora ^ pdu->codigo ^ pdu->monto ^ pdu->n_ticket ^ pdu->checksum; 
   if (chk != 0){
       printf("\n*** Error en la transmición del paquete de llegada ***\n");
   }
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 
     /* Datos a enviar */
     pdu_salida-> tipo_paq = op;
-    pdu_salida-> fuente = false;
+    pdu_salida-> origen = false;
     pdu_salida-> placa = id;
 
     /* Comprobación del checksum del mensaje del destino */
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 
     /* Tiempo de Espera de respuesta del Servidor */
     struct timeval tv;
-    tv.tv_sec = 5;
+    tv.tv_sec = 3;
     tv.tv_usec = 0;
 
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv)) < 0) {
