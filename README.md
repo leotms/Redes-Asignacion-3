@@ -28,13 +28,13 @@ Ejecutar la línea de comandos:
 
 Donde:
 
-- **puerto_sem_svr: ** Es el número de puerto local en que el computador central
+- **puerto_sem_svr:** Es el número de puerto local en que el computador central
 ofrecerá el servicio.
 
-- **bitácora_entrada: ** Es el nombre y dirección relativa o absoluta de un archivo
+- **bitácora_entrada:** Es el nombre y dirección relativa o absoluta de un archivo
 de texto que almacena las operaciones de entrada al estacionamiento.
 
-- **bitácora_salida: ** Es el nombre y dirección relativa o absoluta de un archivo
+- **bitácora_salida:** Es el nombre y dirección relativa o absoluta de un archivo
 de texto que almacena las operaciones de salida del estacionamiento.
 
 ### Cliente
@@ -48,17 +48,17 @@ Ejecutar la línea de comandos:
 ```
 
 Donde:
-- **nombre_módulo_atención: ** Es el nombre de dominio o la dirección IP
+- **nombre_módulo_atención:** Es el nombre de dominio o la dirección IP
 (version 4) del equipo en donde se deberá ejecutar el módulo de atención
 centralizada.
 
-- ** puerto_sem_svr: ** Es el número de puerto remoto en que el módulo de
+- **puerto_sem_svr:** Es el número de puerto remoto en que el módulo de
 servicio atenderá la comunicación solicitada.
 
-- **op: **Indica si el vehículo va a entrar o salir del estacionamiento, puede tener
+- **op:** Indica si el vehículo va a entrar o salir del estacionamiento, puede tener
 dos valores e ó s.
 
-- **identificación_vehículo: ** Es un número serial que identifica únivocamente
+- **identificación_vehículo:** Es un número serial que identifica únivocamente
 un vehículo.
 
 
