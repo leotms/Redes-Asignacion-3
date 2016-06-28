@@ -1,0 +1,78 @@
+/* Archivo Leeme
+* Ultima Modificacion 27/06/16
+* @author Sahid Reyes 	  	10-10603
+* @author Leonardo Martinez 11-10576
+*/
+
+					Sistema de Estacionamiento Moriah (SEM)
+
+- Contenido
+
+	Este proyecto consta de 6 archivos:
+
+	*  pdu.h :	Archivo de cabecera que posee la estructura de datos PDU junto con 
+				la definición de las funciones calc_checksum y comp_checksum.
+
+	*  cliente.h :	Archivo de cabecera que posee las funciones utilizadas por el 
+					archivo cliente.c Contiene las funciones: error, leer_args y
+					generar_id
+
+	*  servidor.h :	Archivo de cabecera que posee las funciones utilizadas por el 
+					archivo servidor.c Contiene las definiciones de las constantes 
+					MAX_PUESTOS y MAX_CACHE, la definición de la estructura REG_VEHICULO
+					junto con las funciones: error, leer_args, registrar, buscar_vehiculo,
+					ingresar_vehiculo, retirar_vehiculo calcular_pago buscar_en_cache y 
+					procesar_pdu.
+
+	*  cliente.c : 	Código que corresponde al proceso cliente.
+
+	*  servidor.c : Código que corresponde al proceso servidor.
+
+	*  Makefile :	Código en bash para compilar y generar los ejecutables que correran
+					el cliente y el servidor.
+
+	Los programas ejecutan el sistema informático SEM, el cual está basado en el paradigma
+	Cliente/Servidor que permite automatizar y controlar el estacionamiento, contando con
+	un Computador Central (CC) y tres puertas para la entrada y salida de los vehículos,
+	siendo el servidor y los clientes respectivamente.
+
+- Ejecución del sistema SEM
+
+	Para ejecutar el sistema se deben realizar los siguientes pasos:
+
+	1) Ubicarse en la carpeta correspondiente que posea los archivos fuente. 
+	2) Ejecutar en un terminal la línea de comando make
+	3) En el Computador Central ejecutar:
+		
+		sem_svr -l <puerto_sem_svr> -i <bitácora_entrada> - o <bitácora_salida>
+
+		Siendo:
+		<puerto_sem_svr>   : El número de puerto local en que el computador central
+							 ofrecerá el servicio
+
+		<bitácora_entrada> : El nombre y dirección relativa o absoluta de un archivo
+							 de texto que almacena las operaciones de entrada al estacionamiento.
+
+		<bitácora_salida>  : El nombre y dirección relativa o absoluta de un archivo de texto 
+							 que almacena las operaciones de salida del estacionamiento.
+
+
+	4) En cada una de las puertas ejecutar: 
+
+		sem_cli -d <nombre_módulo_atención> -p <puerto_sem_svr> - c <op> -i
+
+		Siendo:
+		<nombre_módulo_atención> : El nombre de dominio o la dirección IP(version 4) del equipo 
+								   en donde se deberá ejecutar el módulo de atención centralizada.
+
+		<puerto_sem_svr> : El número de puerto remoto en que el módulo de servicio atenderá la 
+							comunicación solicitada.
+
+		<op>: Indica si el vehículo va a entrar o salir del estacionamiento, puede tener dos valores 
+			  e ó s.
+
+		<identificación_vehículo> : El número serial que identifica únivocamente un vehículo.
+
+- Condiciones Particulares:
+
+	El número de identificación del vehículo no puede exceder los 10 dígitos.
