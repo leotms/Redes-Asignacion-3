@@ -69,13 +69,28 @@ void *ingresar_vehiculo(REG_VEHICULO * estacionamiento[], REG_VEHICULO * vehicul
 */
 REG_VEHICULO * retirar_vehiculo(REG_VEHICULO * estacionamiento[], int * placa);
 
-/* Rtorna el pago correspondiente del estacionamiento para un intervalo de tiempo_entrada.
+/* Retorna el pago correspondiente del estacionamiento para un intervalo de tiempo_entrada.
 * La primera hora de estacionamiento cuesta 80 Bs y la fracción (1 hora) cuesta 30 Bs.
 * @param hora_entrada tiempo de entrada del estacionamiento
 * @param hora_salida tiempo de salida del estacionamiento
 * @return int que representa el pago en bolivares del estacionamiento
 */
 int calcular_pago(time_t hora_entrada, time_t hora_salida);
+
+/* Busca en el cache de peticiones atendidas el identificador de la peticion solicitada.
+* @param cache_peticiones arreglo con el cache de las peticiones atendidas con anterioridad
+* @param peticion identificador univoco de la peticion que se quiere buscar
+* @return PDU * que apunta hacia la respuesta que genero la peticion anteriormente.
+*/
+PDU * buscar_en_cache(PDU * cache_peticiones[], int peticion);
+
+/* Guarda en el cache de peticiones atendidas el la respuesta enviada hacia un cliente.
+* @param cache_peticiones arreglo con el cache de las peticiones atendidas con anterioridad
+* @param posicion_cache contador que cuenta la posicion en el arreglo cache_peticiones a sustituir por la nueva entrada.
+* @param pdu_respuesta contiene la respuesta que se almacenara en el cache
+* @return void la respuesta quedara almacenada en cache_peticiones[posicion_cache].
+*/
+void * guardar_en_cache(PDU * cache_peticiones[], int *posicion_cache, PDU * pdu_respuesta);
 
 /* Procesa el PDU recibido y devuelve una respuesta acorde.
 * @param pdu_entrante pdu que contiene la informacion de la peticion.
