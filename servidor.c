@@ -167,34 +167,33 @@ void * leer_args(int argc, char *argv[], int *numero_puerto,
 	}
 }
 
-int buscar_en_cache(PDU * cache_peticiones[], int peticion, PDU * pdu_respuesta){
-	int i,j;
-	int existe = 0;
-	for (j=0; j < MAX_CACHE; j++){
-		if (cache_peticiones[j] != NULL){ printf(" CACHE %d\n", cache_peticiones[j]->peticion);}
-	}
+PDU * buscar_en_cache(PDU * cache_peticiones[], int peticion){
+	int i;
+	PDU * pdu_encache = NULL;
 	for (i = 0; i < MAX_CACHE; i++){
 		if (cache_peticiones[i] != NULL && cache_peticiones[i]->peticion == peticion){
-			existe = 1;
-			printf("AQUI TA!");
-			pdu_respuesta = cache_peticiones[i];
+			pdu_encache =  cache_peticiones[i];
 			break;
 		}
 	}
-	return existe;
+	return pdu_encache;
 }
 
 void * guardar_en_cache(PDU * cache_peticiones[], int *posicion_cache, PDU * pdu_respuesta){
+
+	// creamos la nueva entrada del cache
 	PDU *nuevo_pdu = (PDU *) calloc(1,sizeof(PDU));
 	memcpy(nuevo_pdu, pdu_respuesta, sizeof(PDU));
+
 	if  (cache_peticiones[*posicion_cache] != NULL){
-		printf("I WANT TO BREAK FREEEEEE\n");
+		// Si es un cache viejo, lo eliminamos.
 		free(cache_peticiones[*posicion_cache]);
 		cache_peticiones[*posicion_cache] = nuevo_pdu;
 	} else {
 		cache_peticiones[*posicion_cache] = nuevo_pdu;
 	}
 
+	// Aumentamos la siguiente entrada del cache
 	*posicion_cache = *posicion_cache + 1;
 	if (*posicion_cache == MAX_CACHE) {
 		*posicion_cache = 0;
@@ -237,6 +236,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 
 					/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
+					pdu_salida-> peticion = pdu_entrante->peticion;
 					pdu_salida-> tipo_paq = 'e';
 					pdu_salida-> origen = true;
 					pdu_salida-> placa = pdu_entrante->placa;
@@ -285,6 +285,7 @@ int procesar_pdu(PDU * pdu_entrante, REG_VEHICULO * estacionamiento[],
 
 					/* Aqui le enviamos al cliente el mensaje correspondiente*/
 
+					pdu_salida-> peticion = pdu_entrante->peticion;
 					pdu_salida-> tipo_paq = 's';
 					pdu_salida-> origen   = true;
 					pdu_salida-> placa    = pdu_entrante->placa;
@@ -430,15 +431,23 @@ void main(int argc, char *argv[]) {
 
 			/* Es un apuntador al PDU que efectivamente se enviara*/
 			PDU * pdu_respuesta;
+			PDU * pdu_encache;
 
 			// perimero buscamos si la solicitud corresponde a una peticion ya atendida.
-			if (buscar_en_cache(cache_peticiones, pdu_entrante->peticion, pdu_respuesta)) {
-				printf("Solicitud ya atendida, reenviando respuesta anterior \n");
-				printf("Peticion numero: %d\n", pdu_entrante->peticion);
+			// esto corresponderia a que el client no recibio la respuesta y esta haciendo
+			// una nueva solicitud.
+			pdu_encache = buscar_en_cache(cache_peticiones, pdu_entrante->peticion);
+
+			if (pdu_encache != NULL) {
+				printf("Solicitud ya atendida, reenviando respuesta anterior... \n");
+				pdu_respuesta = pdu_encache;
+
 			// si una solicitud es de entrada y no hay puestos, se envia pdu_informacion
 			} else if (puestos_ocupados == MAX_PUESTOS && pdu_entrante -> tipo_paq == 'e') {
+				pdu_informacion->peticion = pdu_entrante->peticion;
 				pdu_informacion->codigo = 0;
 				pdu_respuesta = pdu_informacion;
+				// almacenamos la respuesta en el cache, en caso de perdida.
 				guardar_en_cache(cache_peticiones,&posicion_cache,pdu_respuesta);
 
 			} else {
@@ -459,13 +468,14 @@ void main(int argc, char *argv[]) {
 						pdu_respuesta = pdu_informacion;
 						break;
 				}
+				// almacenamos la respuesta en el cache, en caso de perdida.
 				guardar_en_cache(cache_peticiones,&posicion_cache,pdu_respuesta);
 			}
 
-  			 /* Comprobación del checksum del mensaje del destino */
+  		/* Agregamos el checksum al mensaje de salida */
    		calc_checksum(pdu_respuesta);
-			printf("solicitud atendida. \n");
-			printf("Enviando respuesta al cliente... ");
+
+			printf("\nEnviando respuesta al cliente... ");
 
 			// Se envia la respuesta del servidor
 			if (numero_bytes = sendto(socketfd,pdu_respuesta,sizeof(PDU),0,
