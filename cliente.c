@@ -1,5 +1,5 @@
 /* Aplicacion Cliente para el Sistema de Estacionamiento Moriah (SEM).
-* Ultima Modificacion 26/06/16
+* Ultima Modificacion 27/06/16
 * @author Sahid Reyes 	  	10-10603
 * @author Leonardo Martinez 11-10576
 */
@@ -63,6 +63,12 @@ int comp_checksum(PDU *pdu){
   return chk;
 }
 
+int generar_id(int placa, char op){
+	srand(time(NULL));
+	int r = rand()+placa+op;
+	return(r);
+}
+
 /* Programa Principal*/
 int main(int argc, char *argv[]) {
 
@@ -120,7 +126,7 @@ int main(int argc, char *argv[]) {
 
 
     /* Datos a enviar */
-    pdu_salida-> peticion = id;
+    pdu_salida-> peticion = generar_id(id,op);
     pdu_salida-> tipo_paq = op;
     pdu_salida-> origen = false;
     pdu_salida-> placa = id;
